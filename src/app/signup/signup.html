@@ -1,0 +1,16 @@
+<div class="hero-wrapper">
+  <app-background-image></app-background-image>
+  <app-external-nav></app-external-nav>
+  <div class="title-text">Welcome!</div>
+  <div class="signupCard">
+    <h2>Join HelloWorld;</h2>
+
+    <input [(ngModel)]="email" placeholder="Email" />
+    <input [(ngModel)]="password" type="password" placeholder="Password" />
+    <input [(ngModel)]="confirmPassword" type="password" placeholder="Confirm Password" />
+
+    <button (click)="signup()">Signup</button>
+
+    <p>{{ message }}</p>
+  </div>
+</div>
