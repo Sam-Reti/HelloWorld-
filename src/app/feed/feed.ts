@@ -71,4 +71,11 @@ export class Feed implements OnInit {
     }
     return this.comments$[postId];
   }
+
+  getInitials(email: string | null | undefined): string {
+    if (!email) return 'U';
+
+    const namePart = email.split('@')[0]; // take everything before @
+    return namePart.slice(0, 2).toUpperCase();
+  }
 }
