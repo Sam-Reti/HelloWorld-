@@ -5,6 +5,9 @@ import { HomeComponent } from './home/home';
 import { AppHome } from './app-home/app-home';
 import { authGuard } from './auth/auth.guard';
 import { guestGuard } from './auth/guest.guard';
+import { Feed } from './feed/feed';
+import { Editprofile } from './editprofile/editprofile';
+import { Profile } from './profile/profile';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -24,5 +27,12 @@ export const routes: Routes = [
     path: 'app-home',
     component: AppHome,
     canActivate: [authGuard], // must be logged in
+    children: [
+      { path: '', redirectTo: 'feed', pathMatch: 'full' },
+      { path: 'feed', component: Feed },
+      { path: 'edit-profile', component: Editprofile },
+      { path: 'profile/:uid', component: Profile },
+    ],
   },
+  { path: '**', redirectTo: 'home' },
 ];

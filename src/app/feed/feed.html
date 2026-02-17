@@ -1,0 +1,79 @@
+<div class="feed-wrapper">
+  <div class="hider">
+    <div class="new-post">
+      <textarea
+        [(ngModel)]="text"
+        placeholder="Post a question, share a win, or drop a snippet"
+      ></textarea>
+
+      <div class="composer-actions">
+        <div class="hint">Use ``` for code blocks (beofre & after)</div>
+        <button class="createpostbutton" (click)="createPost()" [disabled]="!text.trim()">
+          Post
+        </button>
+      </div>
+    </div>
+  </div>
+
+  @for (post of (posts$ | async) ?? []; track post.id) {
+    <div class="post">
+      <div class="post-header">
+        <div class="author">
+          <div class="avatar">{{ (post.authorName || 'U')[0] }}</div>
+          <div class="meta">
+            <div class="name">{{ post.authorName || 'Anonymous' }}</div>
+            <div class="time">
+              {{
+                (post.createdAt?.toDate ? post.createdAt.toDate() : post.createdAt) | date: 'short'
+              }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="post-text" [innerHTML]="renderMarkdown(post.text)"></div>
+      <div class="post-actions">
+        <button class="action" (click)="toggleLike(post.id!)">👍 {{ post.likeCount || 0 }}</button>
+
+        <button class="action" type="button" (click)="toggleComments(post.id!)">
+          Comments ({{ post.commentCount || 0 }})
+        </button>
+
+        @if (post.authorId === currentUid) {
+          <button class="action danger" type="button" (click)="delete(post.id!)">Delete</button>
+        }
+      </div>
+
+      @if (showComments[post.id!]) {
+        <div class="comments">
+          <div class="comment-composer">
+            <input [(ngModel)]="commentText[post.id!]" placeholder="Write a comment..." />
+            <button class="send" type="button" (click)="submitComment(post.id!)">Send</button>
+          </div>
+
+          <div class="comment-list">
+            @for (c of (getComments(post.id!) | async) ?? []; track c.id) {
+              <div class="comment">
+                <div class="comment-left">
+                  <div class="comment-avatar">{{ (c.authorName || 'A')[0] }}</div>
+                </div>
+
+                <div class="comment-body">
+                  <div class="comment-meta">
+                    <strong>{{ c.authorName || 'Anonymous' }}</strong>
+                    <span>
+                      {{
+                        (c.createdAt?.toDate ? c.createdAt.toDate() : c.createdAt) | date: 'short'
+                      }}
+                    </span>
+                  </div>
+                  <div class="comment-text">{{ c.text }}</div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
