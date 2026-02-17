@@ -79,6 +79,18 @@
   border: 1px solid #e2e8f0;
   background: #fff;
   font-weight: 700;
+  cursor: pointer;
+}
+
+.avatar:active {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid #14d29f;
+  background: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  transform: translateY(1px);
 }
 
 /* Main grid */

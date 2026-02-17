@@ -10,7 +10,9 @@
     </div>
 
     <div class="top-actions">
-      <button class="avatar">{{ getInitials(userEmail) }}</button>
+      <button class="avatar" type="button" routerLink="profile" routerLinkActive="active">
+        {{ getInitials(displayName) }}
+      </button>
       <button class="signout" (click)="logout()">Sign out</button>
     </div>
   </header>
@@ -20,7 +22,8 @@
       <div class="card">
         <div class="card-title">Navigation</div>
         <nav class="nav">
-          <a class="nav-item active">Home</a>
+          <a class="nav-item active" routerLink="feed" routerLinkActive="active">Home</a>
+          <a class="nav-item" routerLink="profile" routerLinkActive="active">Profile</a>
         </nav>
       </div>
     </aside>

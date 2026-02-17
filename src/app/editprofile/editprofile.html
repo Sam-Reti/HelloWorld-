@@ -1,1 +1,11 @@
-<p>editprofile works!</p>
+<div class="profile-card">
+  <h2>Complete Your Profile</h2>
+
+  <label>Display Name</label>
+  <input [(ngModel)]="displayName" placeholder="Your name" />
+
+  <label>Bio</label>
+  <textarea [(ngModel)]="bio" placeholder="Tell us a little about yourself"></textarea>
+
+  <button type="button" (click)="saveProfile()">Save Profile</button>
+</div>

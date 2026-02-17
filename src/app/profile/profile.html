@@ -1,1 +1,16 @@
-<p>profile works!</p>
+@if (profile$ | async; as p) {
+  <div class="profile-card">
+    <div class="avatar">{{ getInitials(p.displayName || email) }}</div>
+
+    <h2>{{ p.displayName || 'Set your display name' }}</h2>
+    <div class="email">{{ email || '' }}</div>
+
+    <p class="bio">
+      {{ p.bio || 'Add a short bio so people know what you’re learning.' }}
+    </p>
+
+    <a routerLink="/app-home/edit-profile">Edit Profile</a>
+  </div>
+} @else {
+  <div class="profile-card">Loading…</div>
+}

@@ -16,6 +16,7 @@ export type Post = {
   createdAt: any;
   likeCount: number;
   commentCount: number;
+  authorDisplayName?: string | null; // ✅ add this
 };
 
 export type Comment = {
@@ -34,18 +35,25 @@ export class PostService {
   private auth = inject(Auth);
 
   async createPost(text: string) {
-    console.log('createPost clicked');
-
     const user = this.auth.currentUser;
     if (!user) throw new Error('Not authenticated');
+
+    const clean = text.trim();
+    if (!clean) return;
+
+    // pull displayName from /users/{uid}
+    const userRef = doc(this.firestore, `users/${user.uid}`);
+    const snap = await getDoc(userRef);
+    const displayName = snap.exists() ? ((snap.data() as any).displayName ?? null) : null;
 
     const postsRef = collection(this.firestore, 'posts');
 
     await addDoc(postsRef, {
-      text,
+      text: clean,
       authorId: user.uid,
-      authorName: user.email,
-      createdAt: new Date(),
+      authorName: user.email, // optional
+      authorDisplayName: displayName, // ✅ store it
+      createdAt: serverTimestamp(), // better than new Date()
       likeCount: 0,
       commentCount: 0,
     });

@@ -19,9 +19,11 @@
     <div class="post">
       <div class="post-header">
         <div class="author">
-          <div class="avatar">{{ getInitials(post.authorName) }}</div>
+          <div class="avatar">{{ getInitials(post.authorDisplayName || post.authorName) }}</div>
+
           <div class="meta">
-            <div class="name">{{ post.authorName || 'Anonymous' }}</div>
+            <div class="name">{{ post.authorDisplayName || post.authorName || 'Anonymous' }}</div>
+
             <div class="time">
               {{
                 (post.createdAt?.toDate ? post.createdAt.toDate() : post.createdAt) | date: 'short'

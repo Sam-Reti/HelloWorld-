@@ -31,7 +31,7 @@ export const routes: Routes = [
       { path: '', redirectTo: 'feed', pathMatch: 'full' },
       { path: 'feed', component: Feed },
       { path: 'edit-profile', component: Editprofile },
-      { path: 'profile/:uid', component: Profile },
+      { path: 'profile', component: Profile },
     ],
   },
   { path: '**', redirectTo: 'home' },
