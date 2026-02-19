@@ -20,7 +20,7 @@
 .hider {
   position: sticky;
   top: 0;
-  z-index: 50;
+  z-index: 0;
 }
 .hider::after {
   content: '';
@@ -80,6 +80,20 @@
 }
 
 /* Post card */
+
+:host ::ng-deep .post-text pre {
+  overflow-x: auto;
+  white-space: pre;
+  max-width: 100%;
+  scrollbar-width: none;
+}
+
+:host ::ng-deep .post-text pre code {
+  display: inline-block;
+  white-space: pre;
+  min-width: max-content;
+  scrollbar-width: none;
+}
 .post {
   margin-top: 14px;
   background: #fff;
@@ -87,7 +101,12 @@
   border-radius: 16px;
   padding: 14px;
   box-shadow: 0 1px 2px rgba(2, 6, 23, 0.06);
-  overflow: scroll;
+  overflow: hidden;
+}
+
+.post-text {
+  overflow: wrap;
+  min-width: 0; /* safe if any parent ends up flex */
 }
 
 .post-text pre {
@@ -95,16 +114,27 @@
   color: #e6edf5;
   padding: 12px;
   border-radius: 12px;
-  overflow: auto;
   border: 1px solid rgba(255, 255, 255, 0.08);
   margin-top: 10px;
-}
 
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: pre; /* critical */
+  max-width: 100%;
+}
 .post-text code {
   font-family:
     ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
     monospace;
   font-size: 13px;
+}
+
+.post-text pre code {
+  display: inline-block; /* important: lets code define width */
+  white-space: pre; /* critical */
+  word-break: normal;
+  overflow-wrap: normal;
+  min-width: max-content; /* forces width to content so pre can scroll */
 }
 
 .post-text p {

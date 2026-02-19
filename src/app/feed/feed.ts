@@ -6,6 +6,7 @@ import { CommonModule } from '@angular/common';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import { Auth } from '@angular/fire/auth';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-feed',
@@ -28,6 +29,7 @@ export class Feed implements OnInit {
   constructor(
     private postService: PostService,
     private auth: Auth,
+    private route: ActivatedRoute,
   ) {
     this.currentUid = this.auth.currentUser?.uid ?? null;
   }
@@ -59,9 +61,19 @@ export class Feed implements OnInit {
   }
 
   async submitComment(postId: string) {
-    const text = this.commentText[postId] ?? '';
-    await this.postService.addComment(postId, text);
+    const text = (this.commentText[postId] ?? '').trim();
+    if (!text) return;
+
+    // clear immediately for UX
     this.commentText[postId] = '';
+
+    try {
+      await this.postService.addComment(postId, text);
+    } catch (e) {
+      // restore on failure so user doesn't lose it
+      this.commentText[postId] = text;
+      throw e;
+    }
   }
   comments$: Record<string, any> = {};
 

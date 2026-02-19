@@ -86,41 +86,83 @@ export class PostService {
     const postRef = doc(this.firestore, `posts/${postId}`);
 
     const likeSnap = await getDoc(likeRef);
+    const postSnap = await getDoc(postRef);
+    if (!postSnap.exists()) return;
+
+    const post = postSnap.data() as any;
+    const postAuthorId = post.authorId as string | undefined;
+    if (!postAuthorId) return;
 
     if (likeSnap.exists()) {
       // Unlike
       await deleteDoc(likeRef);
-      await updateDoc(postRef, {
-        likeCount: increment(-1),
-      });
-    } else {
-      // Like
-      await setDoc(likeRef, {
-        createdAt: new Date(),
-      });
-      await updateDoc(postRef, {
-        likeCount: increment(1),
-      });
+      await updateDoc(postRef, { likeCount: increment(-1) });
+      return;
+    }
+
+    // Like
+    await setDoc(likeRef, { createdAt: serverTimestamp() });
+    await updateDoc(postRef, { likeCount: increment(1) });
+
+    // Notify (only if not liking your own post)
+    if (postAuthorId !== user.uid) {
+      const notifCol = collection(this.firestore, `users/${postAuthorId}/notifications`);
+
+      await addDoc(notifCol, {
+        type: 'like',
+        postId,
+        actorId: user.uid,
+        actorName: user.displayName || user.email || null,
+        createdAt: serverTimestamp(),
+        read: false,
+      }).catch((e) => console.error('like notif failed', e));
     }
   }
 
   async addComment(postId: string, text: string) {
     const user = this.auth.currentUser;
     if (!user) throw new Error('Not authenticated');
+
     const clean = text.trim();
     if (!clean) return;
 
+    const postRef = doc(this.firestore, `posts/${postId}`);
+    const postSnap = await getDoc(postRef);
+    if (!postSnap.exists()) return;
+
+    const post = postSnap.data() as any;
+    const postAuthorId = post.authorId as string | undefined;
+    if (!postAuthorId) return;
+
+    // 1) create comment
     const commentsRef = collection(this.firestore, `posts/${postId}/comments`);
-    await addDoc(commentsRef, {
+    const commentDoc = await addDoc(commentsRef, {
       text: clean,
       authorId: user.uid,
       authorName: user.email,
       createdAt: serverTimestamp(),
     });
 
-    const postRef = doc(this.firestore, `posts/${postId}`);
+    // 2) increment count
     await updateDoc(postRef, { commentCount: increment(1) });
+
+    // 3) notify post author (not yourself)
+    if (postAuthorId !== user.uid) {
+      const notifId = `comment_${postId}_${commentDoc.id}`;
+      const notifRef = doc(this.firestore, `users/${postAuthorId}/notifications/${notifId}`);
+
+      await setDoc(notifRef, {
+        type: 'comment',
+        postId,
+        commentId: commentDoc.id,
+        actorId: user.uid,
+        actorName: user.displayName || user.email || null,
+        createdAt: serverTimestamp(),
+        read: false,
+      }).catch(() => {});
+    }
   }
+
   getComments(postId: string) {
     const commentsRef = collection(this.firestore, `posts/${postId}/comments`);
     const q = query(commentsRef, orderBy('createdAt', 'asc'));

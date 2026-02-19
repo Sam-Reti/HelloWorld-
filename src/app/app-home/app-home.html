@@ -10,6 +10,30 @@
     </div>
 
     <div class="top-actions">
+      <button class="notif-bell" type="button" (click)="toggleNotifications()">
+        🔔
+        <ng-container *ngIf="unreadCount$ | async as c">
+          <span *ngIf="c > 0" class="notif-badge">{{ c }}</span>
+        </ng-container>
+      </button>
+
+      @if (notifOpen) {
+        <div class="notif-panel">
+          @for (n of (notifications$ | async) ?? []; track n.id) {
+            <div class="notif-item" [class.unread]="!n.read">
+              @if (n.type === 'like') {
+                <div>👍 {{ n.actorName || 'Someone' }} liked your post</div>
+              }
+              @if (n.type === 'comment') {
+                <div>💬 {{ n.actorName || 'Someone' }} commented on your post</div>
+              }
+            </div>
+          }
+          @if (((notifications$ | async) ?? []).length === 0) {
+            <div class="notif-empty">No notifications yet</div>
+          }
+        </div>
+      }
       <button class="avatar" type="button" routerLink="profile" routerLinkActive="active">
         {{ getInitials(displayName) }}
       </button>
