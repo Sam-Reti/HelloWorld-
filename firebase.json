@@ -1,15 +1,17 @@
 {
   "hosting": {
     "public": "dist/dev-world-v1/browser",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [
       {
         "source": "**",
         "destination": "/index.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "**",
+        "headers": [{ "key": "Referrer-Policy", "value": "no-referrer" }]
       }
     ]
   }
