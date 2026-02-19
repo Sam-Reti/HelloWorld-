@@ -139,7 +139,7 @@ export class PostService {
     const commentDoc = await addDoc(commentsRef, {
       text: clean,
       authorId: user.uid,
-      authorName: user.email,
+      authorName: user.displayName || user.email || null,
       createdAt: serverTimestamp(),
     });
 
