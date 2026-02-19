@@ -28,12 +28,10 @@ jobs:
         run: |
           mkdir -p src/environments
 
-          # Write the JSON to a file exactly as provided
-          cat > /tmp/firebase-config.json <<'EOF'
-          $FIREBASE_CONFIG
-          EOF
+          # Write the secret JSON exactly to a temp file
+          printf "%s" "$FIREBASE_CONFIG" > /tmp/firebase-config.json
 
-          # Generate TypeScript files with correct quoting/types
+          # Validate + generate TS with correct quoting/types
           node - <<'NODE'
           const fs = require('fs');
 
@@ -42,27 +40,27 @@ jobs:
           try {
             cfg = JSON.parse(raw);
           } catch (e) {
-            console.error("FIREBASE_CONFIG is not valid JSON. Paste valid JSON into the secret.");
-            console.error(raw);
+            console.error("FIREBASE_CONFIG is not valid JSON. Fix the GitHub secret value.");
+            console.error("Raw starts with:", raw.slice(0, 60));
             process.exit(1);
           }
 
-          const make = (production) => `export const environment = ${JSON.stringify({
-            production,
-            firebase: cfg
-          }, null, 2)};\n`;
-
-          fs.writeFileSync('src/environments/environment.ts', make(false));
-          fs.writeFileSync('src/environments/environment.prod.ts', make(true));
-
-          // Fail fast if apiKey missing/empty
           if (!cfg.apiKey || typeof cfg.apiKey !== 'string') {
             console.error("FIREBASE_CONFIG.apiKey must be a non-empty string.");
             process.exit(1);
           }
 
-          console.log("Generated environment files successfully (apiKey masked).");
-          console.log("apiKey starts with:", cfg.apiKey.slice(0,4) + "...");
+          const make = (production) =>
+            `export const environment = ${JSON.stringify(
+              { production, firebase: cfg },
+              null,
+              2
+            )};\n`;
+
+          fs.writeFileSync('src/environments/environment.ts', make(false));
+          fs.writeFileSync('src/environments/environment.prod.ts', make(true));
+
+          console.log("Generated environment files successfully. apiKey starts with:", cfg.apiKey.slice(0, 4) + "...");
           NODE
 
       - name: Build
