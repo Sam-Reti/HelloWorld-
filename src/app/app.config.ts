@@ -6,19 +6,11 @@ import { routes } from './app.routes';
 // Optional later:
 import { provideFirestore, getFirestore } from '@angular/fire/firestore';
 // import { provideStorage, getStorage } from '@angular/fire/storage';
-
-const firebaseConfig = {
-  apiKey: 'AIzaSyAGf3rdpkKWUy20vKya2OeL6serxb8MJmE',
-  authDomain: 'dev-world-v1.firebaseapp.com',
-  projectId: 'dev-world-v1',
-  storageBucket: 'dev-world-v1.firebasestorage.app',
-  messagingSenderId: '1002641470453',
-  appId: '1:1002641470453:web:9e94b9617e8f94fd7926bc',
-};
+import { environment } from '../environments/environment';
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideFirebaseApp(() => initializeApp(firebaseConfig)),
+    provideFirebaseApp(() => initializeApp(environment.firebase)),
     provideAuth(() => getAuth()),
     provideFirestore(() => getFirestore()),
     provideRouter(routes),
