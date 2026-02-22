@@ -47,16 +47,14 @@ export class SignupComponent {
     try {
       const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
 
-      // 1) Set Auth profile display name
       await updateProfile(userCredential.user, { displayName });
 
-      // 2) Create Firestore user profile doc
       const uid = userCredential.user.uid;
       await setDoc(doc(this.firestore, `users/${uid}`), {
         displayName,
         bio: '',
-        email, // optional, but often useful
-        createdAt: new Date(), // optional (better: serverTimestamp)
+        email,
+        createdAt: new Date(),
       });
 
       this.router.navigateByUrl('/app-home');

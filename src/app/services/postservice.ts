@@ -16,7 +16,7 @@ export type Post = {
   createdAt: any;
   likeCount: number;
   commentCount: number;
-  authorDisplayName?: string | null; // ✅ add this
+  authorDisplayName?: string | null;
 };
 
 export type Comment = {
@@ -41,7 +41,6 @@ export class PostService {
     const clean = text.trim();
     if (!clean) return;
 
-    // pull displayName from /users/{uid}
     const userRef = doc(this.firestore, `users/${user.uid}`);
     const snap = await getDoc(userRef);
     const displayName = snap.exists() ? ((snap.data() as any).displayName ?? null) : null;
@@ -51,9 +50,9 @@ export class PostService {
     await addDoc(postsRef, {
       text: clean,
       authorId: user.uid,
-      authorName: user.email, // optional
-      authorDisplayName: displayName, // ✅ store it
-      createdAt: serverTimestamp(), // better than new Date()
+      authorName: user.email,
+      authorDisplayName: displayName,
+      createdAt: serverTimestamp(),
       likeCount: 0,
       commentCount: 0,
     });

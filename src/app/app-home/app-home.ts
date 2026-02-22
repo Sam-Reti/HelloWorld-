@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, HostListener, ElementRef, ViewChild, inject } from '@angular/core';
 import { Auth } from '@angular/fire/auth';
 import { signOut } from 'firebase/auth';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -25,6 +25,7 @@ import { map } from 'rxjs';
 import { docData } from '@angular/fire/firestore';
 import { authState } from '@angular/fire/auth';
 import { NgIf } from '@angular/common';
+import { ScrollService } from '../services/scroll.service';
 
 @Component({
   selector: 'app-app-home',
@@ -34,6 +35,8 @@ import { NgIf } from '@angular/common';
   styleUrl: './app-home.css',
 })
 export class AppHome implements OnInit {
+  @ViewChild('notifContainer') notifContainer?: ElementRef;
+
   unreadCount$?: Observable<number>;
   userEmail: string | null = null;
   displayName: string | null = null;
@@ -48,6 +51,7 @@ export class AppHome implements OnInit {
     private router: Router,
     private user: User,
     private firestore: Firestore,
+    private scrollService: ScrollService,
   ) {
     authState(this.auth).subscribe(async (user) => {
       if (!user) return;
@@ -130,5 +134,24 @@ export class AppHome implements OnInit {
         await updateDoc(ref, { read: true }).catch(() => {});
       }
     });
+  }
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (this.notifContainer && !this.notifContainer.nativeElement.contains(event.target)) {
+      this.notifOpen = false;
+    }
+  }
+
+  async onNotificationClick(notification: any) {
+    // Close the notification panel
+    this.notifOpen = false;
+
+    // Navigate to feed
+    await this.router.navigateByUrl('/app-home/feed');
+
+    // Signal the feed to scroll to this post
+    if (notification.postId) {
+      this.scrollService.scrollToPost(notification.postId);
+    }
   }
 }

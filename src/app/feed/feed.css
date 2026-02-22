@@ -322,3 +322,19 @@
 .action.danger:hover {
   background: rgba(239, 68, 68, 0.08);
 }
+
+/* Highlight effect for scrolled-to posts */
+.post.highlight {
+  animation: highlightPulse 2s ease-out;
+}
+
+@keyframes highlightPulse {
+  0% {
+    background: rgba(59, 130, 246, 0.15);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  }
+  100% {
+    background: transparent;
+    box-shadow: 0 0 0 rgba(59, 130, 246, 0);
+  }
+}
