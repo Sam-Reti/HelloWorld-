@@ -9,7 +9,7 @@
 
 .title-text {
   font-size: 5rem;
-  color: #00ffcc;
+  color: #00ffcc !important;
   z-index: 1;
   text-align: center;
   margin-bottom: 100px;
@@ -18,7 +18,7 @@
 .loginCard {
   position: relative;
   z-index: 1;
-  color: aqua;
+  will-change: transform;
 
   margin: 0 auto;
 
@@ -31,12 +31,11 @@
 
   display: flex;
   flex-direction: column;
-  justify-content: center;
   width: 25%;
-  height: 350px;
-  gap: 25px;
-  text-align: center;
   min-width: 250px;
+  gap: 16px;
+  text-align: center;
+  color: #00ffcc !important;
 }
 
 .loginCard input {
@@ -54,11 +53,11 @@
 
 .loginCard button {
   background: transparent;
-  border: none;
   border: 1px solid rgba(255, 255, 255, 0.2);
   padding: 10px;
   color: #00ffcc;
   font-size: 1rem;
+  cursor: pointer;
 }
 
 .loginCard button:hover {
@@ -68,4 +67,30 @@
   background: rgba(0, 255, 204, 0.1);
   transform: translateY(1px);
   box-shadow: inset 0 1px 2px rgba(0, 255, 204, 0.2);
+}
+
+.loginCard .message {
+  font-size: 0.85rem;
+  color: rgba(0, 255, 204, 0.7);
+}
+
+.loginCard .resend-btn {
+  background: transparent;
+  border: none;
+  padding: 4px;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 0.75rem;
+  cursor: pointer;
+  margin-top: 4px;
+}
+
+.loginCard .resend-btn:hover {
+  background: transparent;
+  color: rgba(0, 255, 204, 0.6);
+}
+
+.loginCard .resend-btn:active {
+  background: transparent;
+  box-shadow: none;
+  transform: none;
 }

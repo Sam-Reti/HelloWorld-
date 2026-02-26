@@ -1,15 +1,21 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { Auth } from '@angular/fire/auth';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { Router } from '@angular/router';
+import {
+  createUserWithEmailAndPassword,
+  updateProfile,
+  sendEmailVerification,
+  signOut,
+  signInWithEmailAndPassword,
+} from 'firebase/auth';
 import { BackgroundImage } from '../background-image/background-image';
 import { ExternalNav } from '../external-nav/external-nav';
 import { Firestore, doc, setDoc } from '@angular/fire/firestore';
 
 @Component({
   selector: 'app-signup',
-  imports: [FormsModule, BackgroundImage, ExternalNav],
+  imports: [FormsModule, RouterLink, BackgroundImage, ExternalNav],
   templateUrl: './signup.html',
   styleUrl: './signup.css',
 })
@@ -19,10 +25,10 @@ export class SignupComponent {
   confirmPassword = '';
   displayName = '';
   message = '';
+  emailSent = false;
 
   constructor(
     private auth: Auth,
-    private router: Router,
     private firestore: Firestore,
   ) {}
 
@@ -57,9 +63,24 @@ export class SignupComponent {
         createdAt: new Date(),
       });
 
-      this.router.navigateByUrl('/app-home');
+      await sendEmailVerification(userCredential.user);
+      await signOut(this.auth);
+
+      this.emailSent = true;
     } catch (error) {
       this.message = `Signup failed: ${error instanceof Error ? error.message : String(error)}`;
+    }
+  }
+
+  async resendVerification() {
+    this.message = '';
+    try {
+      const userCredential = await signInWithEmailAndPassword(this.auth, this.email, this.password);
+      await sendEmailVerification(userCredential.user);
+      await signOut(this.auth);
+      this.message = 'Verification email resent. Check your inbox.';
+    } catch (error) {
+      this.message = `Failed to resend: ${error instanceof Error ? error.message : String(error)}`;
     }
   }
 }

@@ -2,34 +2,34 @@
 .feed-wrapper {
   width: 90%;
   margin: 0 auto 100px auto;
-
-  padding: 0; /* app-home center already has spacing */
+  padding: 0;
 }
 
 /* Composer card */
 .new-post {
   position: relative;
   z-index: 1;
-
-  background: #fff;
-  border: 1px solid #e6edf5;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
   border-radius: 16px;
   padding: 14px;
-  box-shadow: 0 1px 2px rgba(2, 6, 23, 0.06);
+  box-shadow: 0 1px 2px var(--shadow);
 }
+
 .hider {
   position: sticky;
   top: 0;
   z-index: 0;
 }
+
 .hider::after {
   content: '';
   position: absolute;
   left: -16px;
   right: -16px;
   top: 0;
-  height: 192px; /* THIS is your "hider height" */
-  background: rgba(246, 248, 251, 0.95);
+  height: 192px;
+  background: var(--bg-hider);
   pointer-events: none;
   z-index: 0;
   border-radius: 0 0 16px 16px;
@@ -40,16 +40,20 @@
   min-height: 96px;
   padding: 10px 12px;
   border-radius: 12px;
-  border: 1px solid #e2e8f0;
-  background: #fbfdff;
-  color: #0f172a;
+  border: 1px solid var(--border-input);
+  background: var(--bg-subtle);
+  color: var(--text);
   resize: none;
   outline: none;
 }
 
+.new-post textarea::placeholder {
+  color: var(--text-muted);
+}
+
 .new-post textarea:focus {
-  border-color: rgba(14, 165, 164, 0.6);
-  box-shadow: 0 0 0 3px rgba(14, 165, 164, 0.15);
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
 }
 
 .composer-actions {
@@ -61,14 +65,14 @@
 
 .hint {
   font-size: 12px;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .createpostbutton {
   padding: 10px 14px;
   border-radius: 12px;
   border: none;
-  background: #0ea5a4;
+  background: var(--accent);
   color: #fff;
   font-weight: 700;
   cursor: pointer;
@@ -80,7 +84,6 @@
 }
 
 /* Post card */
-
 :host ::ng-deep .post-text pre {
   overflow-x: auto;
   white-space: pre;
@@ -94,21 +97,23 @@
   min-width: max-content;
   scrollbar-width: none;
 }
+
 .post {
   margin-top: 14px;
-  background: #fff;
-  border: 1px solid #e6edf5;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
   border-radius: 16px;
   padding: 14px;
-  box-shadow: 0 1px 2px rgba(2, 6, 23, 0.06);
+  box-shadow: 0 1px 2px var(--shadow);
   overflow: hidden;
 }
 
 .post-text {
   overflow: wrap;
-  min-width: 0; /* safe if any parent ends up flex */
+  min-width: 0;
 }
 
+/* Code blocks stay dark regardless of theme */
 .post-text pre {
   background: #0b0e14;
   color: #e6edf5;
@@ -116,25 +121,24 @@
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   margin-top: 10px;
-
   overflow-x: auto;
   overflow-y: hidden;
-  white-space: pre; /* critical */
+  white-space: pre;
   max-width: 100%;
 }
+
 .post-text code {
-  font-family:
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
-    monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
   font-size: 13px;
 }
 
 .post-text pre code {
-  display: inline-block; /* important: lets code define width */
-  white-space: pre; /* critical */
+  display: inline-block;
+  white-space: pre;
   word-break: normal;
   overflow-wrap: normal;
-  min-width: max-content; /* forces width to content so pre can scroll */
+  min-width: max-content;
 }
 
 .post-text p {
@@ -159,12 +163,12 @@
   width: 36px;
   height: 36px;
   border-radius: 999px;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
+  border: 1px solid var(--border-input);
+  background: var(--bg-subtle);
   display: grid;
   place-items: center;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--text);
 }
 
 .meta {
@@ -175,19 +179,20 @@
 
 .name {
   font-weight: 800;
+  color: var(--text);
 }
 
 .time {
   font-size: 12px;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .post-text {
   margin: 0;
-  color: #0f172a;
+  color: var(--text);
   line-height: 1.45;
   font-size: 15px;
-  overflow: scroll;
+  overflow: visible;
 }
 
 /* Actions row */
@@ -196,13 +201,13 @@
   gap: 10px;
   margin-top: 12px;
   padding-top: 10px;
-  border-top: 1px solid #eef2f7;
+  border-top: 1px solid var(--border);
 }
 
 .action {
-  background: #fff;
-  color: #0f172a;
-  border: 1px solid #e2e8f0;
+  background: var(--bg-card);
+  color: var(--text);
+  border: 1px solid var(--border-input);
   padding: 8px 12px;
   border-radius: 999px;
   cursor: pointer;
@@ -210,19 +215,16 @@
 }
 
 .action:hover {
-  background: #2acf98;
-}
-
-/* Remove this (it causes scrollbars inside each post) */
-.post-text {
-  overflow: visible;
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
 }
 
 /* Comments container */
 .comments {
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid #eef2f7;
+  border-top: 1px solid var(--border);
 }
 
 /* Composer row */
@@ -232,8 +234,8 @@
   align-items: center;
   padding: 10px;
   border-radius: 14px;
-  background: #fbfdff;
-  border: 1px solid #e6edf5;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
 }
 
 .comment-composer input {
@@ -243,14 +245,18 @@
   background: transparent;
   padding: 10px 8px;
   font-size: 14px;
-  color: #0f172a;
+  color: var(--text);
+}
+
+.comment-composer input::placeholder {
+  color: var(--text-muted);
 }
 
 .send {
   border: none;
   border-radius: 999px;
   padding: 8px 12px;
-  background: #0ea5a4;
+  background: var(--accent);
   color: white;
   font-weight: 700;
   cursor: pointer;
@@ -275,20 +281,20 @@
   gap: 10px;
   padding: 10px 12px;
   border-radius: 14px;
-  border: 1px solid #e6edf5;
-  background: #fff;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
 }
 
 .comment-avatar {
   width: 30px;
   height: 30px;
   border-radius: 999px;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
+  border: 1px solid var(--border-input);
+  background: var(--bg-subtle);
   display: grid;
   place-items: center;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--text);
   font-size: 12px;
 }
 
@@ -302,18 +308,17 @@
   justify-content: space-between;
   gap: 12px;
   font-size: 12px;
-  color: #64748b;
+  color: var(--text-muted);
   margin-bottom: 4px;
 }
 
 .comment-text {
   font-size: 14px;
-  color: #0f172a;
+  color: var(--text);
   line-height: 1.35;
   white-space: pre-wrap;
 }
 
-/* Optional: delete styling */
 .action.danger {
   border-color: rgba(239, 68, 68, 0.35);
   color: #b91c1c;
@@ -321,6 +326,8 @@
 
 .action.danger:hover {
   background: rgba(239, 68, 68, 0.08);
+  color: #b91c1c;
+  border-color: rgba(239, 68, 68, 0.35);
 }
 
 /* Highlight effect for scrolled-to posts */

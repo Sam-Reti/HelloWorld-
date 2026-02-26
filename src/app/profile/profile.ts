@@ -1,9 +1,9 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Auth } from '@angular/fire/auth';
-import { Firestore, doc, docData } from '@angular/fire/firestore';
-import { Observable, of } from 'rxjs';
+import { Firestore, doc, getDoc } from '@angular/fire/firestore';
 import { RouterLink } from '@angular/router';
+import { ThemeService, Theme } from '../services/theme.service';
 
 type UserProfile = { displayName: string; bio: string };
 
@@ -14,17 +14,32 @@ type UserProfile = { displayName: string; bio: string };
   templateUrl: './profile.html',
   styleUrl: './profile.css',
 })
-export class Profile {
+export class Profile implements OnInit {
   private auth = inject(Auth);
   private firestore = inject(Firestore);
+  private themeService = inject(ThemeService);
+  private cdr = inject(ChangeDetectorRef);
 
   email = this.auth.currentUser?.email ?? null;
+  profile: UserProfile | null = null;
+  loading = true;
 
-  profile$: Observable<UserProfile | null> = (() => {
+  async ngOnInit() {
     const user = this.auth.currentUser;
-    if (!user) return of(null);
-    return docData(doc(this.firestore, `users/${user.uid}`)) as Observable<UserProfile>;
-  })();
+    if (!user) { this.loading = false; return; }
+    const snap = await getDoc(doc(this.firestore, `users/${user.uid}`));
+    this.profile = snap.exists() ? (snap.data() as UserProfile) : null;
+    this.loading = false;
+    this.cdr.detectChanges();
+  }
+
+  get lightThemes(): Theme[] { return this.themeService.lightThemes; }
+  get darkThemes(): Theme[]  { return this.themeService.darkThemes; }
+  get activeTheme(): string  { return this.themeService.current(); }
+
+  selectTheme(id: string): void {
+    this.themeService.apply(id);
+  }
 
   getInitials(value: string | null | undefined): string {
     if (!value) return 'U';

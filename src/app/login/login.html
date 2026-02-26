@@ -11,6 +11,10 @@
 
     <button (click)="login()">Login</button>
 
-    <p>{{ message }}</p>
+    @if (message) {
+      <p class="message">{{ message }}</p>
+    }
+
+    <button class="resend-btn" (click)="resendVerification()">Resend verification email</button>
   </div>
 </div>

@@ -1,0 +1,22 @@
+<div class="hero-wrapper">
+  <app-background-image></app-background-image>
+  <app-external-nav></app-external-nav>
+  <div class="title-text">HelloWorld;</div>
+  <div class="verifyCard">
+    @if (state === 'pending') {
+      <h2>Verify your email</h2>
+      <p>Click the button below to confirm your email address.</p>
+    }
+    @if (state === 'success') {
+      <h2>Email verified!</h2>
+      <p>Your email has been confirmed. You can now log in.</p>
+      <a routerLink="/login">Go to Login</a>
+    }
+    @if (state === 'error') {
+      <h2>Verification failed</h2>
+      <p>{{ message }}</p>
+      <a routerLink="/login">Back to Login</a>
+    }
+    <button [hidden]="state !== 'pending'" (click)="verify()">Confirm my email</button>
+  </div>
+</div>

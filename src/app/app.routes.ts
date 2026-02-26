@@ -3,6 +3,7 @@ import { SignupComponent } from './signup/signup';
 import { LoginComponent } from './login/login';
 import { HomeComponent } from './home/home';
 import { AppHome } from './app-home/app-home';
+import { VerifyEmailComponent } from './verify-email/verify-email';
 import { authGuard } from './auth/auth.guard';
 import { guestGuard } from './auth/guest.guard';
 import { Feed } from './feed/feed';
@@ -13,6 +14,7 @@ export const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
 
   { path: 'home', component: HomeComponent },
+  { path: 'verify-email', component: VerifyEmailComponent },
   {
     path: 'signup',
     component: SignupComponent,

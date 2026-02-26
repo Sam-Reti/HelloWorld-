@@ -26,6 +26,7 @@ import { docData } from '@angular/fire/firestore';
 import { authState } from '@angular/fire/auth';
 import { NgIf } from '@angular/common';
 import { ScrollService } from '../services/scroll.service';
+import { ThemeService } from '../services/theme.service';
 
 @Component({
   selector: 'app-app-home',
@@ -52,7 +53,9 @@ export class AppHome implements OnInit {
     private user: User,
     private firestore: Firestore,
     private scrollService: ScrollService,
+    private themeService: ThemeService,
   ) {
+    this.themeService.init();
     authState(this.auth).subscribe(async (user) => {
       if (!user) return;
 

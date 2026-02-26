@@ -1,16 +1,52 @@
-@if (profile$ | async; as p) {
+@if (loading) {
+  <div class="profile-card">Loading…</div>
+} @else if (profile) {
   <div class="profile-card">
-    <div class="avatar">{{ getInitials(p.displayName || email) }}</div>
+    <div class="avatar">{{ getInitials(profile.displayName || email) }}</div>
 
-    <h2>{{ p.displayName || 'Set your display name' }}</h2>
+    <h2>{{ profile.displayName || 'Set your display name' }}</h2>
     <div class="email">{{ email || '' }}</div>
 
     <p class="bio">
-      {{ p.bio || 'Add a short bio so people know what you’re learning.' }}
+      {{ profile.bio || 'Add a short bio so people know what you\'re learning.' }}
     </p>
 
     <a routerLink="/app-home/edit-profile">Edit Profile</a>
+
+    <div class="theme-section">
+      <div class="theme-section-label">Appearance</div>
+
+      <div class="theme-group">
+        <div class="theme-mode-label">Light</div>
+        <div class="swatches">
+          @for (t of lightThemes; track t.id) {
+            <button
+              class="swatch"
+              [class.active]="activeTheme === t.id"
+              [style.background]="t.accent"
+              [title]="t.name"
+              (click)="selectTheme(t.id)"
+            ></button>
+          }
+        </div>
+      </div>
+
+      <div class="theme-group">
+        <div class="theme-mode-label">Dark</div>
+        <div class="swatches">
+          @for (t of darkThemes; track t.id) {
+            <button
+              class="swatch"
+              [class.active]="activeTheme === t.id"
+              [style.background]="t.accent"
+              [title]="t.name"
+              (click)="selectTheme(t.id)"
+            ></button>
+          }
+        </div>
+      </div>
+    </div>
   </div>
 } @else {
-  <div class="profile-card">Loading…</div>
+  <div class="profile-card">Could not load profile.</div>
 }
