@@ -5,7 +5,19 @@ import { Firestore, doc, getDoc } from '@angular/fire/firestore';
 import { RouterLink } from '@angular/router';
 import { ThemeService, Theme } from '../services/theme.service';
 
-type UserProfile = { displayName: string; bio: string };
+type UserProfile = {
+  displayName: string;
+  bio: string;
+  followerCount?: number;
+  followingCount?: number;
+  role?: string;
+  skillLevel?: string;
+  languages?: string[];
+  githubUrl?: string;
+  websiteUrl?: string;
+  location?: string;
+  avatarColor?: string;
+};
 
 @Component({
   selector: 'app-profile',

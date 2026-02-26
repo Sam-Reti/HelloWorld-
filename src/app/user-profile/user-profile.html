@@ -3,21 +3,21 @@
 } @else if (profile) {
   <div class="profile-card">
     <div class="avatar" [style.background]="profile.avatarColor || null">
-      {{ getInitials(profile.displayName || email) }}
+      {{ getInitials(profile.displayName) }}
     </div>
 
     <div class="name-row">
-      <h2>{{ profile.displayName || 'Set your display name' }}</h2>
+      <h2>{{ profile.displayName }}</h2>
       @if (profile.skillLevel) {
         <span class="skill-badge">{{ profile.skillLevel }}</span>
       }
     </div>
 
     @if (profile.role) { <div class="role">{{ profile.role }}</div> }
-    <div class="email">{{ email || '' }}</div>
+    @if (profile.showEmail && profile.email) { <div class="email">{{ profile.email }}</div> }
     @if (profile.location) { <div class="location">📍 {{ profile.location }}</div> }
 
-    <p class="bio">{{ profile.bio || 'Add a short bio so people know what you\'re learning.' }}</p>
+    <p class="bio">{{ profile.bio }}</p>
 
     @if (profile.languages?.length) {
       <div class="lang-tags">
@@ -41,32 +41,13 @@
       }
     </div>
 
-    <a class="edit-link" routerLink="/app-home/edit-profile">Edit Profile</a>
-
-    <div class="theme-section">
-      <div class="theme-section-label">Appearance</div>
-
-      <div class="theme-group">
-        <div class="theme-mode-label">Light</div>
-        <div class="swatches">
-          @for (t of lightThemes; track t.id) {
-            <button class="swatch" [class.active]="activeTheme === t.id"
-              [style.background]="t.accent" [title]="t.name" (click)="selectTheme(t.id)"></button>
-          }
-        </div>
-      </div>
-
-      <div class="theme-group">
-        <div class="theme-mode-label">Dark</div>
-        <div class="swatches">
-          @for (t of darkThemes; track t.id) {
-            <button class="swatch" [class.active]="activeTheme === t.id"
-              [style.background]="t.accent" [title]="t.name" (click)="selectTheme(t.id)"></button>
-          }
-        </div>
-      </div>
-    </div>
+    @if (!isOwnProfile) {
+      @let following = (isFollowing$ | async) ?? false;
+      <button class="follow-btn" [class.following]="following" (click)="toggle(following)">
+        {{ following ? 'Unfollow' : 'Follow' }}
+      </button>
+    }
   </div>
 } @else {
-  <div class="profile-card">Could not load profile.</div>
+  <div class="profile-card">User not found.</div>
 }

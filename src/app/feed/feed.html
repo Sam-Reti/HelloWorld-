@@ -78,4 +78,10 @@
       }
     </div>
   }
+  @if (((posts$ | async) ?? []).length === 0) {
+    <div class="empty-feed">
+      <p>Your feed is empty.</p>
+      <a routerLink="/app-home/discover">Find people to follow →</a>
+    </div>
+  }
 </div>

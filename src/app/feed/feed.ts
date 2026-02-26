@@ -1,18 +1,21 @@
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { PostService } from '../services/postservice'; // make sure path/name matches your file
+import { PostService } from '../services/postservice';
 import { AsyncPipe, DatePipe } from '@angular/common';
 import { CommonModule } from '@angular/common';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import { Auth } from '@angular/fire/auth';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ScrollService } from '../services/scroll.service';
+import { FollowService } from '../services/follow.service';
+import { switchMap, of, Observable } from 'rxjs';
+import { Post } from '../services/postservice';
 
 @Component({
   selector: 'app-feed',
   standalone: true,
-  imports: [FormsModule, DatePipe, AsyncPipe, CommonModule],
+  imports: [FormsModule, DatePipe, AsyncPipe, CommonModule, RouterLink],
   templateUrl: './feed.html',
   styleUrl: './feed.css',
 })
@@ -22,7 +25,7 @@ export class Feed implements OnInit {
     return DOMPurify.sanitize(html);
   }
   text = '';
-  posts$!: ReturnType<PostService['getPosts']>;
+  posts$!: Observable<Post[]>;
   currentUid: string | null = null;
   commentText: Record<string, string> = {};
   showComments: Record<string, boolean> = {};
@@ -32,12 +35,18 @@ export class Feed implements OnInit {
     private auth: Auth,
     private route: ActivatedRoute,
     private scrollService: ScrollService,
+    private followService: FollowService,
   ) {
     this.currentUid = this.auth.currentUser?.uid ?? null;
   }
 
   ngOnInit() {
-    this.posts$ = this.postService.getPosts();
+    this.posts$ = this.followService.getFollowingIds$().pipe(
+      switchMap((ids) => {
+        const feedUids = this.currentUid ? [...ids, this.currentUid] : ids;
+        return feedUids.length ? this.postService.getPostsFromUsers(feedUids) : of([]);
+      }),
+    );
 
     // Listen for scroll signals from notifications
     this.scrollService.scrollToPost$.subscribe((postId) => {

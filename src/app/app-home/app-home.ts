@@ -1,4 +1,4 @@
-import { Component, OnInit, HostListener, ElementRef, ViewChild, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, HostListener, ElementRef, ViewChild, inject } from '@angular/core';
 import { Auth } from '@angular/fire/auth';
 import { signOut } from 'firebase/auth';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -41,6 +41,7 @@ export class AppHome implements OnInit {
   unreadCount$?: Observable<number>;
   userEmail: string | null = null;
   displayName: string | null = null;
+  avatarColor: string | null = null;
 
   notifications$?: Observable<any[]>;
   unreadCount = 0;
@@ -54,6 +55,7 @@ export class AppHome implements OnInit {
     private firestore: Firestore,
     private scrollService: ScrollService,
     private themeService: ThemeService,
+    private cdr: ChangeDetectorRef,
   ) {
     this.themeService.init();
     authState(this.auth).subscribe(async (user) => {
@@ -63,7 +65,10 @@ export class AppHome implements OnInit {
 
       const userRef = doc(this.firestore, `users/${user.uid}`);
       const snap = await getDoc(userRef);
-      this.displayName = snap.exists() ? ((snap.data() as any).displayName ?? null) : null;
+      const data = snap.exists() ? (snap.data() as any) : null;
+      this.displayName = data?.displayName ?? null;
+      this.avatarColor = data?.avatarColor ?? null;
+      this.cdr.detectChanges();
 
       const notifCol = collection(this.firestore, `users/${user.uid}/notifications`);
       const notifQuery = query(notifCol, orderBy('createdAt', 'desc'));
@@ -146,13 +151,14 @@ export class AppHome implements OnInit {
   }
 
   async onNotificationClick(notification: any) {
-    // Close the notification panel
     this.notifOpen = false;
 
-    // Navigate to feed
-    await this.router.navigateByUrl('/app-home/feed');
+    if (notification.type === 'follow' && notification.actorId) {
+      await this.router.navigateByUrl(`/app-home/user/${notification.actorId}`);
+      return;
+    }
 
-    // Signal the feed to scroll to this post
+    await this.router.navigateByUrl('/app-home/feed');
     if (notification.postId) {
       this.scrollService.scrollToPost(notification.postId);
     }

@@ -1,9 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { Firestore, collection, addDoc } from '@angular/fire/firestore';
 import { Auth } from '@angular/fire/auth';
-import { query, orderBy } from 'firebase/firestore';
+import { query, orderBy, where } from 'firebase/firestore';
 import { collectionData } from '@angular/fire/firestore';
-import { map, Observable } from 'rxjs';
+import { combineLatest, map, Observable, of } from 'rxjs';
 import { doc, updateDoc } from '@angular/fire/firestore';
 import { increment, serverTimestamp } from 'firebase/firestore';
 import { deleteDoc, getDoc, setDoc } from 'firebase/firestore';
@@ -160,6 +160,43 @@ export class PostService {
         read: false,
       }).catch(() => {});
     }
+  }
+
+  getPostsFromUsers(uids: string[]): Observable<Post[]> {
+    if (!uids.length) return of([]);
+
+    const chunks = this.chunkArray(uids, 30);
+    const postsRef = collection(this.firestore, 'posts');
+
+    const chunkQueries = chunks.map((chunk) => {
+      const q = query(postsRef, where('authorId', 'in', chunk));
+      return collectionData(q, { idField: 'id' }).pipe(
+        map((posts: any[]) =>
+          posts.map((post) => ({
+            ...post,
+            createdAt: post.createdAt?.toDate ? post.createdAt.toDate() : post.createdAt,
+          })),
+        ),
+      );
+    });
+
+    return combineLatest(chunkQueries).pipe(
+      map((arrays) =>
+        arrays.flat().sort((a, b) => {
+          const aTime = a.createdAt instanceof Date ? a.createdAt.getTime() : 0;
+          const bTime = b.createdAt instanceof Date ? b.createdAt.getTime() : 0;
+          return bTime - aTime;
+        }),
+      ),
+    );
+  }
+
+  private chunkArray<T>(arr: T[], size: number): T[][] {
+    const chunks: T[][] = [];
+    for (let i = 0; i < arr.length; i += size) {
+      chunks.push(arr.slice(i, i + size));
+    }
+    return chunks;
   }
 
   getComments(postId: string) {

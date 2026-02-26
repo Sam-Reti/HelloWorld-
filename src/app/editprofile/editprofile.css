@@ -70,6 +70,127 @@ textarea {
   resize: none;
 }
 
+/* Avatar editor */
+.avatar-editor {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.color-swatches {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.color-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 3px solid transparent;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.15s, border-color 0.15s;
+}
+
+.color-swatch:hover { transform: scale(1.15); }
+.color-swatch.active { border-color: var(--text); transform: scale(1.1); }
+
+/* Section labels */
+.section-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* Skill level pills */
+.skill-pills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pill {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border-input);
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.pill:hover { border-color: var(--accent); color: var(--accent); }
+.pill.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* Language chips */
+.lang-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border-input);
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.chip:hover { border-color: var(--accent); color: var(--accent); }
+.chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* Email toggle */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border-input);
+  background: var(--bg-subtle);
+  font-size: 14px;
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle-track {
+  position: relative;
+  width: 42px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--border-input);
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.toggle-track.on { background: var(--accent); }
+
+.toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.toggle-track.on .toggle-thumb { transform: translateX(18px); }
+
 button {
   margin-top: 10px;
   padding: 10px;

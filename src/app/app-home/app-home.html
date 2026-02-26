@@ -33,6 +33,9 @@
                 @if (n.type === 'comment') {
                   <div>💬 {{ n.actorName || 'Someone' }} commented on your post</div>
                 }
+                @if (n.type === 'follow') {
+                  <div>👤 {{ n.actorName || 'Someone' }} followed you</div>
+                }
               </div>
             }
             @if (((notifications$ | async) ?? []).length === 0) {
@@ -41,7 +44,8 @@
           </div>
         }
       </div>
-      <button class="avatar" type="button" routerLink="profile" routerLinkActive="active">
+      <button class="avatar" type="button" routerLink="profile" routerLinkActive="active"
+        [style.background]="avatarColor || null">
         {{ getInitials(displayName) }}
       </button>
       <button class="signout" (click)="logout()">Sign out</button>
@@ -54,6 +58,7 @@
         <div class="card-title">Navigation</div>
         <nav class="nav">
           <a class="nav-item active" routerLink="feed" routerLinkActive="active">Home</a>
+          <a class="nav-item" routerLink="discover" routerLinkActive="active">Discover</a>
           <a class="nav-item" routerLink="profile" routerLinkActive="active">Profile</a>
         </nav>
       </div>

@@ -1,11 +1,56 @@
 <div class="profile-card">
-  <h2>Complete Your Profile</h2>
+  <h2>Edit Profile</h2>
+
+  <div class="avatar-editor">
+    <div class="avatar" [style.background]="avatarColor">{{ getInitials(displayName) }}</div>
+    <div class="color-swatches">
+      @for (c of AVATAR_COLORS; track c) {
+        <button type="button" class="color-swatch" [style.background]="c"
+          [class.active]="avatarColor === c" (click)="avatarColor = c"></button>
+      }
+    </div>
+  </div>
 
   <label>Display Name</label>
   <input [(ngModel)]="displayName" placeholder="Your name" />
 
+  <label>Role</label>
+  <input [(ngModel)]="role" placeholder="Frontend Dev, CS Student, Backend Engineer…" />
+
   <label>Bio</label>
   <textarea [(ngModel)]="bio" placeholder="Tell us a little about yourself"></textarea>
+
+  <label>Location</label>
+  <input [(ngModel)]="location" placeholder="City, Country" />
+
+  <div class="section-label">Skill Level</div>
+  <div class="skill-pills">
+    @for (level of SKILL_LEVELS; track level) {
+      <button type="button" class="pill" [class.active]="skillLevel === level"
+        (click)="skillLevel = level">{{ level }}</button>
+    }
+  </div>
+
+  <div class="section-label">Languages & Tech</div>
+  <div class="lang-chips">
+    @for (lang of LANGUAGES; track lang) {
+      <button type="button" class="chip" [class.active]="isSelected(lang)"
+        (click)="toggleLanguage(lang)">{{ lang }}</button>
+    }
+  </div>
+
+  <label class="toggle-row">
+    <span>Show email on public profile</span>
+    <span class="toggle-track" [class.on]="showEmail" (click)="showEmail = !showEmail">
+      <span class="toggle-thumb"></span>
+    </span>
+  </label>
+
+  <label>GitHub</label>
+  <input [(ngModel)]="githubUrl" placeholder="https://github.com/username" />
+
+  <label>Website</label>
+  <input [(ngModel)]="websiteUrl" placeholder="https://yoursite.com" />
 
   <button type="button" (click)="saveProfile()">Save Profile</button>
 </div>

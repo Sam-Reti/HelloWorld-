@@ -1,0 +1,39 @@
+<div class="discover-wrapper">
+  <h2>Discover People</h2>
+  @let followingIds = (followingIds$ | async) ?? [];
+  @for (user of (users$ | async) ?? []; track user.uid) {
+    <div class="user-card">
+      <a [routerLink]="['/app-home/user', user.uid]" class="user-info">
+        <div class="card-avatar" [style.background]="user.avatarColor || null">
+          {{ getInitials(user.displayName) }}
+        </div>
+        <div class="card-body">
+          <div class="user-name-row">
+            <span class="user-name">{{ user.displayName }}</span>
+            @if (user.skillLevel) {
+              <span class="skill-badge">{{ user.skillLevel }}</span>
+            }
+          </div>
+          @if (user.role) { <div class="user-role">{{ user.role }}</div> }
+          @if (user.languages?.length) {
+            <div class="user-langs">
+              @for (lang of (user.languages ?? []).slice(0, 4); track lang) {
+                <span class="lang-chip">{{ lang }}</span>
+              }
+            </div>
+          }
+          <div class="user-stats">{{ user.followerCount || 0 }} followers</div>
+        </div>
+      </a>
+      @if (user.uid !== currentUid) {
+        <button class="follow-btn" [class.following]="followingIds.includes(user.uid)"
+          (click)="toggle(user.uid, followingIds.includes(user.uid))">
+          {{ followingIds.includes(user.uid) ? 'Unfollow' : 'Follow' }}
+        </button>
+      }
+    </div>
+  }
+  @if (((users$ | async) ?? []).length === 0) {
+    <div class="empty">No other users yet.</div>
+  }
+</div>

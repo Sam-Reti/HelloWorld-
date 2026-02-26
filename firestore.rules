@@ -1,0 +1,65 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    // Posts
+    match /posts/{postId} {
+      allow read: if isAuth();
+      allow create: if isAuth() && request.resource.data.authorId == request.auth.uid;
+      allow update: if isAuth() && (
+        isOwner(resource.data.authorId) ||
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likeCount', 'commentCount'])
+      );
+      allow delete: if isAuth() && isOwner(resource.data.authorId);
+
+      match /likes/{likeId} {
+        allow read: if isAuth();
+        allow write: if isAuth() && likeId == request.auth.uid;
+      }
+
+      match /comments/{commentId} {
+        allow read: if isAuth();
+        allow create: if isAuth() && request.resource.data.authorId == request.auth.uid;
+        allow delete: if isAuth() && isOwner(resource.data.authorId);
+        allow update: if false;
+      }
+    }
+
+    // Users
+    match /users/{userId} {
+      allow read: if isAuth();
+      allow create: if isAuth() && isOwner(userId);
+      // Owner can update anything; anyone can increment/decrement followerCount
+      allow update: if isAuth() && (
+        isOwner(userId) ||
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followerCount'])
+      );
+      allow delete: if isOwner(userId);
+
+      // Notifications: owner has full access, any authed user can create
+      match /notifications/{notifId} {
+        allow read, write: if isOwner(userId);
+        allow create: if isAuth();
+      }
+
+      // Following: only the owner manages who they follow
+      match /following/{targetId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // Followers: owner and the follower themselves can write (followerId == auth.uid)
+      match /followers/{followerId} {
+        allow read: if isAuth();
+        allow write: if isAuth() && isOwner(followerId);
+      }
+    }
+  }
+}

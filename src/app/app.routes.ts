@@ -9,6 +9,8 @@ import { guestGuard } from './auth/guest.guard';
 import { Feed } from './feed/feed';
 import { Editprofile } from './editprofile/editprofile';
 import { Profile } from './profile/profile';
+import { Discover } from './discover/discover';
+import { UserProfile } from './user-profile/user-profile';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -34,6 +36,8 @@ export const routes: Routes = [
       { path: 'feed', component: Feed },
       { path: 'edit-profile', component: Editprofile },
       { path: 'profile', component: Profile },
+      { path: 'discover', component: Discover },
+      { path: 'user/:uid', component: UserProfile },
     ],
   },
   { path: '**', redirectTo: 'home' },
