@@ -220,6 +220,16 @@
   border-color: var(--accent);
 }
 
+.action.liked {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.action.liked:hover {
+  opacity: 0.85;
+}
+
 /* Comments container */
 .comments {
   margin-top: 12px;

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PostService } from '../services/postservice';
 import { AsyncPipe, DatePipe } from '@angular/common';
@@ -19,7 +19,7 @@ import { Post } from '../services/postservice';
   templateUrl: './feed.html',
   styleUrl: './feed.css',
 })
-export class Feed implements OnInit {
+export class Feed implements OnInit, OnDestroy {
   renderMarkdown(text: string): string {
     const html = marked.parse(text ?? '') as string;
     return DOMPurify.sanitize(html);
@@ -29,6 +29,7 @@ export class Feed implements OnInit {
   currentUid: string | null = null;
   commentText: Record<string, string> = {};
   showComments: Record<string, boolean> = {};
+  likedPostIds = new Set<string>();
 
   constructor(
     private postService: PostService,
@@ -57,6 +58,12 @@ export class Feed implements OnInit {
     });
   }
 
+  ngOnDestroy() {}
+
+  isLiked(postId: string): boolean {
+    return this.likedPostIds.has(postId);
+  }
+
   async createPost() {
     console.log('createPost clicked');
 
@@ -72,6 +79,9 @@ export class Feed implements OnInit {
     await this.postService.deletePost(postId);
   }
   async toggleLike(id: string) {
+    const next = new Set(this.likedPostIds);
+    next.has(id) ? next.delete(id) : next.add(id);
+    this.likedPostIds = next;
     await this.postService.toggleLike(id);
   }
 

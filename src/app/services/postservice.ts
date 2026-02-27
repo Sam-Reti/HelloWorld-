@@ -100,7 +100,7 @@ export class PostService {
     }
 
     // Like
-    await setDoc(likeRef, { createdAt: serverTimestamp() });
+    await setDoc(likeRef, { createdAt: serverTimestamp(), userId: user.uid, postId });
     await updateDoc(postRef, { likeCount: increment(1) });
 
     // Notify (only if not liking your own post)

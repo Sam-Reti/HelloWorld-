@@ -35,7 +35,7 @@
 
       <div class="post-text" [innerHTML]="renderMarkdown(post.text)"></div>
       <div class="post-actions">
-        <button class="action" (click)="toggleLike(post.id!)">👍 {{ post.likeCount || 0 }}</button>
+        <button class="action" [class.liked]="isLiked(post.id!)" (click)="toggleLike(post.id!)">👍 {{ post.likeCount || 0 }}</button>
 
         <button class="action" type="button" (click)="toggleComments(post.id!)">
           Comments ({{ post.commentCount || 0 }})
