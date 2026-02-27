@@ -12,8 +12,8 @@ const LANGUAGES = [
 const SKILL_LEVELS = ['Beginner', 'Learning', 'Intermediate', 'Advanced', 'Expert'];
 
 const AVATAR_COLORS = [
-  '#6366f1', '#8b5cf6', '#ec4899', '#f59e0b',
-  '#10b981', '#06b6d4', '#f97316', '#64748b',
+  '#22c55e', '#6366f1', '#8b5cf6', '#ec4899',
+  '#f59e0b', '#06b6d4', '#f97316', '#64748b',
 ];
 
 @Component({

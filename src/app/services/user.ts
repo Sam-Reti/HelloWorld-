@@ -21,6 +21,7 @@ export class User {
       await setDoc(userRef, {
         displayName: defaultName,
         bio: '',
+        avatarColor: '#22c55e',
         createdAt: serverTimestamp(),
         needsOnboarding: true,
       });

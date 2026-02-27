@@ -2,7 +2,7 @@
   <div class="profile-card">Loading…</div>
 } @else if (profile) {
   <div class="profile-card">
-    <div class="avatar" [style.background]="profile.avatarColor || null">
+    <div class="avatar" [style.background]="profile.avatarColor || '#22c55e'">
       {{ getInitials(profile.displayName) }}
     </div>
 
@@ -43,9 +43,12 @@
 
     @if (!isOwnProfile) {
       @let following = (isFollowing$ | async) ?? false;
-      <button class="follow-btn" [class.following]="following" (click)="toggle(following)">
-        {{ following ? 'Unfollow' : 'Follow' }}
-      </button>
+      <div class="profile-actions">
+        <button class="follow-btn" [class.following]="following" (click)="toggle(following)">
+          {{ following ? 'Unfollow' : 'Follow' }}
+        </button>
+        <button class="message-btn" (click)="message()">Message</button>
+      </div>
     }
   </div>
 } @else {

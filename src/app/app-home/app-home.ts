@@ -27,11 +27,13 @@ import { authState } from '@angular/fire/auth';
 import { NgIf } from '@angular/common';
 import { ScrollService } from '../services/scroll.service';
 import { ThemeService } from '../services/theme.service';
+import { FollowingSidebar } from '../following-sidebar/following-sidebar';
+import { ChatPopup } from '../chat-popup/chat-popup';
 
 @Component({
   selector: 'app-app-home',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, AsyncPipe, NgIf],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, AsyncPipe, NgIf, FollowingSidebar, ChatPopup],
   templateUrl: './app-home.html',
   styleUrl: './app-home.css',
 })

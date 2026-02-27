@@ -1,0 +1,24 @@
+<div class="inbox-wrapper">
+  <h2>Messages</h2>
+
+  @let convos = (conversations$ | async) ?? [];
+
+  @if (convos.length === 0) {
+    <div class="empty">No conversations yet. Message someone from their profile.</div>
+  }
+
+  @for (convo of convos; track convo.id) {
+    @let other = otherUid(convo.participantIds);
+    @let name = convo.participantNames[other] ?? 'Unknown';
+    @let color = convo.participantColors[other] ?? null;
+
+    <button class="convo-card" (click)="open(convo)">
+      <div class="avatar" [style.background]="color">{{ initials(name) }}</div>
+      <div class="convo-body">
+        <div class="convo-name">{{ name }}</div>
+        <div class="convo-preview">{{ convo.lastMessage || 'Say hello!' }}</div>
+      </div>
+      <div class="convo-time">{{ convo.lastMessageAt?.toDate() | date: 'shortTime' }}</div>
+    </button>
+  }
+</div>

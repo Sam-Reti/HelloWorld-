@@ -2,7 +2,7 @@
   <div class="profile-card">Loading…</div>
 } @else if (profile) {
   <div class="profile-card">
-    <div class="avatar" [style.background]="profile.avatarColor || null">
+    <div class="avatar" [style.background]="profile.avatarColor || '#22c55e'">
       {{ getInitials(profile.displayName || email) }}
     </div>
 

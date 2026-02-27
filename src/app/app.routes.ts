@@ -11,6 +11,7 @@ import { Editprofile } from './editprofile/editprofile';
 import { Profile } from './profile/profile';
 import { Discover } from './discover/discover';
 import { UserProfile } from './user-profile/user-profile';
+import { ChatInbox } from './chat-inbox/chat-inbox';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -38,6 +39,7 @@ export const routes: Routes = [
       { path: 'profile', component: Profile },
       { path: 'discover', component: Discover },
       { path: 'user/:uid', component: UserProfile },
+      { path: 'messages', component: ChatInbox },
     ],
   },
   { path: '**', redirectTo: 'home' },

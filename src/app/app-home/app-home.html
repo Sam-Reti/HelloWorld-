@@ -45,7 +45,7 @@
         }
       </div>
       <button class="avatar" type="button" routerLink="profile" routerLinkActive="active"
-        [style.background]="avatarColor || null">
+        [style.background]="avatarColor || '#22c55e'">
         {{ getInitials(displayName) }}
       </button>
       <button class="signout" (click)="logout()">Sign out</button>
@@ -59,6 +59,7 @@
         <nav class="nav">
           <a class="nav-item active" routerLink="feed" routerLinkActive="active">Home</a>
           <a class="nav-item" routerLink="discover" routerLinkActive="active">Discover</a>
+          <a class="nav-item" routerLink="messages" routerLinkActive="active">Messages</a>
           <a class="nav-item" routerLink="profile" routerLinkActive="active">Profile</a>
         </nav>
       </div>
@@ -69,5 +70,12 @@
         <router-outlet></router-outlet>
       </div>
     </section>
+
+    <aside class="right">
+      <app-following-sidebar />
+    </aside>
   </main>
+
+  <!-- Fixed chat popup — rendered outside the grid so position:fixed works freely -->
+  <app-chat-popup />
 </div>

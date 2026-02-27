@@ -1,0 +1,79 @@
+.inbox-wrapper {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 24px 0 80px;
+}
+
+.inbox-wrapper h2 {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 16px;
+}
+
+.convo-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 1px 2px var(--shadow);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s;
+}
+
+.convo-card:hover {
+  border-color: var(--accent);
+}
+
+.avatar {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-input);
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.convo-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.convo-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.convo-preview {
+  font-size: 13px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
+.convo-time {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.empty {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 48px 0;
+  font-size: 15px;
+}

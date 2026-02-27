@@ -1,0 +1,34 @@
+@let chat = popup.openChat();
+
+@if (chat) {
+  <div class="popup">
+
+    <div class="popup-header">
+      <div class="header-avatar" [style.background]="chat.color">
+        {{ getInitials(chat.name) }}
+      </div>
+      <span class="popup-name">{{ chat.name }}</span>
+      <button class="close-btn" (click)="close()">✕</button>
+    </div>
+
+    <div class="message-list" #messageList>
+      @for (msg of (messages$ | async) ?? []; track msg.id) {
+        <div class="message" [class.mine]="msg.senderId === currentUid">
+          <div class="bubble">{{ msg.text }}</div>
+        </div>
+      }
+    </div>
+
+    <div class="input-row">
+      <input
+        class="msg-input"
+        type="text"
+        placeholder="Message…"
+        [(ngModel)]="text"
+        (keydown.enter)="send()"
+      />
+      <button class="send-btn" (click)="send()" [disabled]="!text.trim()">Send</button>
+    </div>
+
+  </div>
+}

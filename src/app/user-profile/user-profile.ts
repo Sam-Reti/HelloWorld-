@@ -6,6 +6,8 @@ import { Auth } from '@angular/fire/auth';
 import { Observable } from 'rxjs';
 import { startWith } from 'rxjs';
 import { FollowService, PublicUser } from '../services/follow.service';
+import { ChatService } from '../services/chat.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-user-profile',
@@ -19,6 +21,8 @@ export class UserProfile implements OnInit {
   private firestore = inject(Firestore);
   private auth = inject(Auth);
   private followService = inject(FollowService);
+  private chatService = inject(ChatService);
+  private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
 
   profile: PublicUser | null = null;
@@ -53,6 +57,12 @@ export class UserProfile implements OnInit {
     } else {
       await this.followService.follow(this.profile.uid);
     }
+  }
+
+  async message(): Promise<void> {
+    if (!this.profile) return;
+    const id = await this.chatService.getOrCreateConversation(this.profile.uid);
+    this.router.navigate(['/app-home/messages', id]);
   }
 
   getInitials(value: string | null | undefined): string {

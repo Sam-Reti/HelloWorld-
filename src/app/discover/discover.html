@@ -4,7 +4,7 @@
   @for (user of (users$ | async) ?? []; track user.uid) {
     <div class="user-card">
       <a [routerLink]="['/app-home/user', user.uid]" class="user-info">
-        <div class="card-avatar" [style.background]="user.avatarColor || null">
+        <div class="card-avatar" [style.background]="user.avatarColor || '#22c55e'">
           {{ getInitials(user.displayName) }}
         </div>
         <div class="card-body">
