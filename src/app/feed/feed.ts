@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PostService } from '../services/postservice';
 import { AsyncPipe, DatePipe } from '@angular/common';
@@ -30,6 +30,7 @@ export class Feed implements OnInit, OnDestroy {
   commentText: Record<string, string> = {};
   showComments: Record<string, boolean> = {};
   likedPostIds = new Set<string>();
+  private likeChecked = new Set<string>();
 
   constructor(
     private postService: PostService,
@@ -37,6 +38,7 @@ export class Feed implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private scrollService: ScrollService,
     private followService: FollowService,
+    private cdr: ChangeDetectorRef,
   ) {
     this.currentUid = this.auth.currentUser?.uid ?? null;
   }
@@ -48,6 +50,21 @@ export class Feed implements OnInit, OnDestroy {
         return feedUids.length ? this.postService.getPostsFromUsers(feedUids) : of([]);
       }),
     );
+
+    // Load liked state from Firestore for each visible post
+    this.posts$.subscribe((posts) => {
+      for (const post of posts) {
+        if (post.id && !this.likeChecked.has(post.id)) {
+          this.likeChecked.add(post.id);
+          this.postService.hasLiked(post.id).then((liked) => {
+            if (liked) {
+              this.likedPostIds = new Set([...this.likedPostIds, post.id!]);
+            }
+            this.cdr.markForCheck();
+          });
+        }
+      }
+    });
 
     // Listen for scroll signals from notifications
     this.scrollService.scrollToPost$.subscribe((postId) => {
@@ -78,11 +95,48 @@ export class Feed implements OnInit, OnDestroy {
   async delete(postId: string) {
     await this.postService.deletePost(postId);
   }
+
+  // Edit post
+  editingPostId: string | null = null;
+  editText = '';
+
+  startEdit(post: Post) {
+    this.editingPostId = post.id!;
+    this.editText = post.text;
+  }
+
+  cancelEdit() {
+    this.editingPostId = null;
+    this.editText = '';
+  }
+
+  async saveEdit(postId: string) {
+    const trimmed = this.editText.trim();
+    if (!trimmed) return;
+    try {
+      await this.postService.updatePost(postId, trimmed);
+      this.editingPostId = null;
+      this.editText = '';
+    } catch (e) {
+      console.error('Edit failed:', e);
+    }
+  }
+
   async toggleLike(id: string) {
+    // Optimistically toggle
+    const wasLiked = this.likedPostIds.has(id);
     const next = new Set(this.likedPostIds);
-    next.has(id) ? next.delete(id) : next.add(id);
+    wasLiked ? next.delete(id) : next.add(id);
     this.likedPostIds = next;
-    await this.postService.toggleLike(id);
+
+    try {
+      await this.postService.toggleLike(id);
+    } catch {
+      // Revert on failure
+      const revert = new Set(this.likedPostIds);
+      wasLiked ? revert.add(id) : revert.delete(id);
+      this.likedPostIds = revert;
+    }
   }
 
   toggleComments(postId: string) {

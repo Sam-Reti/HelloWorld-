@@ -1,0 +1,47 @@
+<div class="sidebar-card">
+  <div class="sidebar-header">
+    <div class="sidebar-title">Messages</div>
+    <button class="new-chat-btn" type="button" (click)="toggleNewChat()">+ New</button>
+  </div>
+
+  <!-- New Chat picker overlay -->
+  @if (newChatOpen) {
+    <div class="new-chat-picker">
+      <div class="picker-header">
+        <span class="picker-title">Start a conversation</span>
+        <button class="picker-close" (click)="toggleNewChat()">✕</button>
+      </div>
+      <div class="picker-list">
+        @for (user of (following$ | async) ?? []; track user.uid) {
+          <button class="picker-user" (click)="startChat(user)">
+            <div class="avatar" [style.background]="user.avatarColor || '#22c55e'">
+              {{ getInitials(user.displayName) }}
+            </div>
+            <span class="picker-name">{{ user.displayName }}</span>
+          </button>
+        }
+        @if (((following$ | async) ?? []).length === 0) {
+          <div class="picker-empty">Follow people to start chatting</div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Conversation list -->
+  <div class="convo-list">
+    @for (convo of (conversations$ | async) ?? []; track convo.id) {
+      <button class="convo-row" (click)="openConversation(convo)">
+        <div class="avatar" [style.background]="getOtherColor(convo)">
+          {{ getInitials(getOtherName(convo)) }}
+        </div>
+        <div class="convo-info">
+          <div class="convo-name">{{ getOtherName(convo) }}</div>
+          <div class="convo-preview">{{ convo.lastMessage || 'No messages yet' }}</div>
+        </div>
+      </button>
+    }
+    @if (((conversations$ | async) ?? []).length === 0) {
+      <div class="empty">No conversations yet</div>
+    }
+  </div>
+</div>

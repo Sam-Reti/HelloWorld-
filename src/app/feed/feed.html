@@ -33,15 +33,30 @@
         </div>
       </div>
 
-      <div class="post-text" [innerHTML]="renderMarkdown(post.text)"></div>
+      @if (editingPostId === post.id) {
+        <div class="edit-post">
+          <textarea [(ngModel)]="editText" class="edit-textarea"></textarea>
+          <div class="edit-actions">
+            <button class="edit-save" (click)="saveEdit(post.id!)" [disabled]="!editText.trim()">
+              Save
+            </button>
+            <button class="edit-cancel" (click)="cancelEdit()">Cancel</button>
+          </div>
+        </div>
+      } @else {
+        <div class="post-text" [innerHTML]="renderMarkdown(post.text)"></div>
+      }
       <div class="post-actions">
-        <button class="action" [class.liked]="isLiked(post.id!)" (click)="toggleLike(post.id!)">👍 {{ post.likeCount || 0 }}</button>
+        <button class="action" [class.liked]="isLiked(post.id!)" (click)="toggleLike(post.id!)">
+          👍 {{ post.likeCount || 0 }}
+        </button>
 
         <button class="action" type="button" (click)="toggleComments(post.id!)">
           Comments ({{ post.commentCount || 0 }})
         </button>
 
         @if (post.authorId === currentUid) {
+          <button class="action" type="button" (click)="startEdit(post)">Edit</button>
           <button class="action danger" type="button" (click)="delete(post.id!)">Delete</button>
         }
       </div>

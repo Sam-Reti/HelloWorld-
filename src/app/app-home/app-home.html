@@ -1,8 +1,13 @@
 <div class="layout">
   <!-- Top header -->
   <header class="topbar">
-    <div class="logo">
-      <img src="assets/HelloWorld-Logo.png" alt="HelloWorld Logo" />
+    <div class="topbar-left">
+      <button class="hamburger" type="button" (click)="toggleMenu()">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="logo">
+        <img src="assets/HelloWorld-Logo.png" alt="HelloWorld Logo" />
+      </div>
     </div>
 
     <div class="search">
@@ -57,6 +62,49 @@
     </div>
   </header>
 
+  <!-- Mobile slide-out drawer -->
+  <div class="drawer-backdrop" [class.open]="menuOpen" (click)="toggleMenu()"></div>
+  <aside class="drawer" [class.open]="menuOpen">
+    <div class="drawer-header">
+      <img src="assets/HelloWorld-Logo.png" alt="HelloWorld Logo" class="drawer-logo" />
+      <button class="drawer-close" type="button" (click)="toggleMenu()">✕</button>
+    </div>
+    <nav class="drawer-nav">
+      <a class="drawer-nav-item" routerLink="feed" routerLinkActive="active" (click)="toggleMenu()"
+        >Home</a
+      >
+      <a
+        class="drawer-nav-item"
+        routerLink="discover"
+        routerLinkActive="active"
+        (click)="toggleMenu()"
+        >Discover</a
+      >
+      <a
+        class="drawer-nav-item"
+        routerLink="following"
+        routerLinkActive="active"
+        (click)="toggleMenu()"
+        >Following</a
+      >
+      <a
+        class="drawer-nav-item"
+        routerLink="messages"
+        routerLinkActive="active"
+        (click)="toggleMenu()"
+        >Messages</a
+      >
+      <a
+        class="drawer-nav-item"
+        routerLink="profile"
+        routerLinkActive="active"
+        (click)="toggleMenu()"
+        >Profile</a
+      >
+    </nav>
+    <a class="drawer-signout" (click)="logout(); toggleMenu()">Sign out</a>
+  </aside>
+
   <main class="main">
     <aside class="left">
       <div class="card">
@@ -64,12 +112,13 @@
         <nav class="nav">
           <a class="nav-item active" routerLink="feed" routerLinkActive="active">Home</a>
           <a class="nav-item" routerLink="discover" routerLinkActive="active">Discover</a>
+          <a class="nav-item" routerLink="following" routerLinkActive="active">Following</a>
           <a class="nav-item" routerLink="messages" routerLinkActive="active">Messages</a>
           <a class="nav-item" routerLink="profile" routerLinkActive="active">Profile</a>
         </nav>
       </div>
       <div class="right-inline">
-        <app-following-sidebar />
+        <app-chat-sidebar />
       </div>
     </aside>
 
@@ -80,7 +129,7 @@
     </section>
 
     <aside class="right">
-      <app-following-sidebar />
+      <app-chat-sidebar />
     </aside>
   </main>
 

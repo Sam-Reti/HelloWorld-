@@ -1,0 +1,171 @@
+.following-wrapper {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 24px 0 80px;
+}
+
+.following-wrapper h2 {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 16px;
+}
+
+.user-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  margin-bottom: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 1px 2px var(--shadow);
+}
+
+.user-info {
+  flex: 1;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+}
+
+.card-avatar {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-input);
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.user-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.user-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  transition: color 0.15s;
+}
+
+.user-info:hover .user-name {
+  color: var(--accent);
+}
+
+.skill-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  color: var(--accent);
+}
+
+.user-role {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.user-langs {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.lang-chip {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.chat-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1.5px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.chat-btn:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.unfollow-btn {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1.5px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.unfollow-btn:hover {
+  background: #ef4444;
+  color: #fff;
+  border-color: #ef4444;
+}
+
+.empty {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 48px 0;
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+.discover-link {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.discover-link:hover {
+  text-decoration: underline;
+}

@@ -1,0 +1,58 @@
+<div class="following-wrapper">
+  <h2>Following</h2>
+
+  @let users = (following$ | async) ?? [];
+
+  @if (users.length === 0) {
+    <div class="empty">
+      You're not following anyone yet.<br />
+      <a routerLink="/app-home/discover" class="discover-link">Discover people to follow</a>
+    </div>
+  }
+
+  @for (user of users; track user.uid) {
+    <div class="user-card">
+      <a [routerLink]="['/app-home/user', user.uid]" class="user-info">
+        <div class="card-avatar" [style.background]="user.avatarColor || '#22c55e'">
+          {{ getInitials(user.displayName) }}
+        </div>
+        <div class="card-body">
+          <div class="user-name-row">
+            <span class="user-name">{{ user.displayName }}</span>
+            @if (user.skillLevel) {
+              <span class="skill-badge">{{ user.skillLevel }}</span>
+            }
+          </div>
+          @if (user.role) {
+            <div class="user-role">{{ user.role }}</div>
+          }
+          @if (user.languages?.length) {
+            <div class="user-langs">
+              @for (lang of (user.languages ?? []).slice(0, 4); track lang) {
+                <span class="lang-chip">{{ lang }}</span>
+              }
+            </div>
+          }
+        </div>
+      </a>
+      <div class="card-actions">
+        <button class="chat-btn" (click)="openChat(user)" title="Chat">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
+        </button>
+        <button class="unfollow-btn" (click)="unfollow(user.uid)">Unfollow</button>
+      </div>
+    </div>
+  }
+</div>

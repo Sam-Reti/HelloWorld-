@@ -220,6 +220,68 @@
   opacity: 0.85;
 }
 
+/* Edit post */
+.edit-post {
+  margin-top: 8px;
+}
+
+.edit-textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--accent);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  justify-content: flex-end;
+}
+
+.edit-save {
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.edit-save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.edit-save:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.edit-cancel {
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--border-input);
+  background: var(--bg-card);
+  color: var(--text);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.edit-cancel:hover {
+  background: var(--bg-subtle);
+}
+
 /* Comments container */
 .comments {
   margin-top: 12px;
@@ -393,6 +455,32 @@
     padding: 8px 12px;
     font-size: 14px;
   }
+
+  .post-actions {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .action {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+
+  .comment-composer {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .comment-composer input {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .comment-meta {
+    flex-direction: column;
+    gap: 2px;
+  }
 }
 
 @media (max-width: 500px) {
@@ -407,5 +495,19 @@
 
   .post {
     padding: 12px;
+  }
+
+  .post-text {
+    font-size: 14px;
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  .name {
+    font-size: 14px;
+  }
+
+  .time {
+    font-size: 11px;
   }
 }

@@ -1,4 +1,12 @@
-import { ChangeDetectorRef, Component, OnInit, HostListener, ElementRef, ViewChild, inject } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  OnInit,
+  HostListener,
+  ElementRef,
+  ViewChild,
+  inject,
+} from '@angular/core';
 import { Auth } from '@angular/fire/auth';
 import { signOut } from 'firebase/auth';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -27,13 +35,13 @@ import { authState } from '@angular/fire/auth';
 import { NgIf } from '@angular/common';
 import { ScrollService } from '../services/scroll.service';
 import { ThemeService } from '../services/theme.service';
-import { FollowingSidebar } from '../following-sidebar/following-sidebar';
 import { ChatPopup } from '../chat-popup/chat-popup';
+import { ChatSidebar } from '../chat-sidebar/chat-sidebar';
 
 @Component({
   selector: 'app-app-home',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, AsyncPipe, NgIf, FollowingSidebar, ChatPopup],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, AsyncPipe, NgIf, ChatPopup, ChatSidebar],
   templateUrl: './app-home.html',
   styleUrl: './app-home.css',
 })
@@ -48,6 +56,7 @@ export class AppHome implements OnInit {
   notifications$?: Observable<any[]>;
   unreadCount = 0;
   notifOpen = false;
+  menuOpen = false;
   currentUid: string | null = null;
 
   constructor(
@@ -129,6 +138,10 @@ export class AppHome implements OnInit {
     if (this.notifOpen) {
       this.markAllRead();
     }
+  }
+
+  toggleMenu() {
+    this.menuOpen = !this.menuOpen;
   }
 
   async markAllRead() {

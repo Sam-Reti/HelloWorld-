@@ -77,6 +77,15 @@ export class PostService {
     await deleteDoc(postRef);
   }
 
+  async updatePost(postId: string, text: string) {
+    const user = this.auth.currentUser;
+    if (!user) throw new Error('Not authenticated');
+    const clean = text.trim();
+    if (!clean) return;
+    const postRef = doc(this.firestore, `posts/${postId}`);
+    await updateDoc(postRef, { text: clean });
+  }
+
   async toggleLike(postId: string) {
     const user = this.auth.currentUser;
     if (!user) return;
@@ -204,5 +213,14 @@ export class PostService {
     const q = query(commentsRef, orderBy('createdAt', 'asc'));
 
     return collectionData(q, { idField: 'id' }) as Observable<Comment[]>;
+  }
+
+  /** Check if the current user has liked a specific post */
+  async hasLiked(postId: string): Promise<boolean> {
+    const user = this.auth.currentUser;
+    if (!user) return false;
+    const likeRef = doc(this.firestore, `posts/${postId}/likes/${user.uid}`);
+    const snap = await getDoc(likeRef);
+    return snap.exists();
   }
 }
