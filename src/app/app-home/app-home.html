@@ -44,8 +44,13 @@
           </div>
         }
       </div>
-      <button class="avatar" type="button" routerLink="profile" routerLinkActive="active"
-        [style.background]="avatarColor || '#22c55e'">
+      <button
+        class="avatar"
+        type="button"
+        routerLink="profile"
+        routerLinkActive="active"
+        [style.background]="avatarColor || '#22c55e'"
+      >
         {{ getInitials(displayName) }}
       </button>
       <button class="signout" (click)="logout()">Sign out</button>
@@ -62,6 +67,9 @@
           <a class="nav-item" routerLink="messages" routerLinkActive="active">Messages</a>
           <a class="nav-item" routerLink="profile" routerLinkActive="active">Profile</a>
         </nav>
+      </div>
+      <div class="right-inline">
+        <app-following-sidebar />
       </div>
     </aside>
 

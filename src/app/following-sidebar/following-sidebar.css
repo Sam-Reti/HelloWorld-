@@ -14,7 +14,6 @@
   color: var(--text-muted);
   margin-bottom: 12px;
 }
-
 .user-row {
   display: flex;
   align-items: center;
@@ -22,6 +21,8 @@
   padding: 6px 4px;
   border-radius: 10px;
   transition: background 0.15s;
+
+  min-width: 0; /* allow children to shrink */
 }
 
 .user-row:hover {
@@ -42,28 +43,37 @@
   color: #fff;
 }
 
-.user-name {
-  flex: 1;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 .chat-btn {
-  flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
+  flex: 1; /* fills the row space between avatar and edge */
+  min-width: 0; /* allows truncation */
+  display: flex; /* name + icon inline */
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  text-align: left;
+  height: 28px; /* keep your existing sizing vibe */
+  padding: 0 6px;
   border-radius: 8px;
   border: none;
   background: transparent;
-  color: var(--text-muted);
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+
+  color: var(--text-muted);
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.user-name {
+  flex: 1;
+  min-width: 0; /* critical */
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .chat-btn:hover {
