@@ -13,7 +13,7 @@
   @for (user of users; track user.uid) {
     <div class="user-card">
       <a [routerLink]="['/app-home/user', user.uid]" class="user-info">
-        <div class="card-avatar" [style.background]="user.avatarColor || '#22c55e'">
+        <div class="card-avatar" [style.background]="user.avatarColor || '#0ea5a4'">
           {{ getInitials(user.displayName) }}
         </div>
         <div class="card-body">

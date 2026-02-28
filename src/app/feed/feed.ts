@@ -9,7 +9,7 @@ import { Auth } from '@angular/fire/auth';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ScrollService } from '../services/scroll.service';
 import { FollowService } from '../services/follow.service';
-import { switchMap, of, Observable } from 'rxjs';
+import { switchMap, of, Observable, map } from 'rxjs';
 import { Post } from '../services/postservice';
 
 @Component({
@@ -32,6 +32,9 @@ export class Feed implements OnInit, OnDestroy {
   likedPostIds = new Set<string>();
   private likeChecked = new Set<string>();
 
+  // Live map of uid → current avatarColor
+  userColors: Record<string, string> = {};
+
   constructor(
     private postService: PostService,
     private auth: Auth,
@@ -44,6 +47,21 @@ export class Feed implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    // Keep a live map of uid → avatarColor
+    this.followService
+      .getAllUsers$()
+      .pipe(
+        map((users) => {
+          const colors: Record<string, string> = {};
+          for (const u of users) if (u.avatarColor) colors[u.uid] = u.avatarColor;
+          return colors;
+        }),
+      )
+      .subscribe((c) => {
+        this.userColors = c;
+        this.cdr.markForCheck();
+      });
+
     this.posts$ = this.followService.getFollowingIds$().pipe(
       switchMap((ids) => {
         const feedUids = this.currentUid ? [...ids, this.currentUid] : ids;
@@ -168,11 +186,19 @@ export class Feed implements OnInit, OnDestroy {
     return this.comments$[postId];
   }
 
-  getInitials(email: string | null | undefined): string {
-    if (!email) return 'U';
+  getInitials(value: string | null | undefined): string {
+    if (!value) return 'U';
+    const parts = value.trim().split(' ');
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
 
-    const namePart = email.split('@')[0]; // take everything before @
-    return namePart.slice(0, 2).toUpperCase();
+  getAvatarColor(post: Post): string {
+    return this.userColors[post.authorId] || post.authorAvatarColor || '#0ea5a4';
+  }
+
+  getCommentAvatarColor(comment: any): string {
+    return this.userColors[comment.authorId] || comment.authorAvatarColor || '#0ea5a4';
   }
 
   private scrollToPost(postId: string) {

@@ -19,7 +19,9 @@
     <div class="post" [id]="'post-' + post.id">
       <div class="post-header">
         <div class="author">
-          <div class="avatar">{{ getInitials(post.authorDisplayName || post.authorName) }}</div>
+          <div class="avatar" [style.background]="getAvatarColor(post)">
+            {{ getInitials(post.authorDisplayName || post.authorName) }}
+          </div>
 
           <div class="meta">
             <div class="name">{{ post.authorDisplayName || post.authorName || 'Anonymous' }}</div>
@@ -72,7 +74,9 @@
             @for (c of (getComments(post.id!) | async) ?? []; track c.id) {
               <div class="comment">
                 <div class="comment-left">
-                  <div class="comment-avatar">{{ (c.authorName || 'A')[0] }}</div>
+                  <div class="comment-avatar" [style.background]="getCommentAvatarColor(c)">
+                    {{ (c.authorName || 'A')[0] }}
+                  </div>
                 </div>
 
                 <div class="comment-body">

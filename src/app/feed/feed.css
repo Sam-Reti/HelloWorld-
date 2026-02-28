@@ -153,12 +153,11 @@
   width: 36px;
   height: 36px;
   border-radius: 999px;
-  border: 1px solid var(--border-input);
-  background: var(--bg-subtle);
   display: grid;
   place-items: center;
   font-weight: 800;
-  color: var(--text);
+  font-size: 13px;
+  color: #fff;
 }
 
 .meta {
@@ -211,13 +210,13 @@
 }
 
 .action.liked {
-  background: var(--accent);
-  color: #fff;
-  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
 }
 
 .action.liked:hover {
-  opacity: 0.85;
+  background: color-mix(in srgb, var(--accent) 25%, transparent);
 }
 
 /* Edit post */
@@ -351,13 +350,11 @@
   width: 30px;
   height: 30px;
   border-radius: 999px;
-  border: 1px solid var(--border-input);
-  background: var(--bg-subtle);
   display: grid;
   place-items: center;
   font-weight: 800;
-  color: var(--text);
-  font-size: 12px;
+  color: #fff;
+  font-size: 11px;
 }
 
 .comment-body {

@@ -2,7 +2,7 @@
   <div class="profile-card">Loading…</div>
 } @else if (profile) {
   <div class="profile-card">
-    <div class="avatar" [style.background]="profile.avatarColor || '#22c55e'">
+    <div class="avatar" [style.background]="profile.avatarColor || '#0ea5a4'">
       {{ getInitials(profile.displayName) }}
     </div>
 
@@ -13,9 +13,15 @@
       }
     </div>
 
-    @if (profile.role) { <div class="role">{{ profile.role }}</div> }
-    @if (profile.showEmail && profile.email) { <div class="email">{{ profile.email }}</div> }
-    @if (profile.location) { <div class="location">📍 {{ profile.location }}</div> }
+    @if (profile.role) {
+      <div class="role">{{ profile.role }}</div>
+    }
+    @if (profile.showEmail && profile.email) {
+      <div class="email">{{ profile.email }}</div>
+    }
+    @if (profile.location) {
+      <div class="location">📍 {{ profile.location }}</div>
+    }
 
     <p class="bio">{{ profile.bio }}</p>
 
@@ -28,16 +34,24 @@
     }
 
     <div class="profile-stats">
-      <span><strong>{{ profile.followerCount || 0 }}</strong> followers</span>
-      <span><strong>{{ profile.followingCount || 0 }}</strong> following</span>
+      <span
+        ><strong>{{ profile.followerCount || 0 }}</strong> followers</span
+      >
+      <span
+        ><strong>{{ profile.followingCount || 0 }}</strong> following</span
+      >
     </div>
 
     <div class="profile-links">
       @if (profile.githubUrl) {
-        <a class="ext-link" [href]="profile.githubUrl" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+        <a class="ext-link" [href]="profile.githubUrl" target="_blank" rel="noopener noreferrer"
+          >GitHub ↗</a
+        >
       }
       @if (profile.websiteUrl) {
-        <a class="ext-link" [href]="profile.websiteUrl" target="_blank" rel="noopener noreferrer">Website ↗</a>
+        <a class="ext-link" [href]="profile.websiteUrl" target="_blank" rel="noopener noreferrer"
+          >Website ↗</a
+        >
       }
     </div>
 

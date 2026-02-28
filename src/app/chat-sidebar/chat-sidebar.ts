@@ -23,6 +23,20 @@ export class ChatSidebar {
 
   conversations$: Observable<Conversation[]> = this.chatService.getConversations$();
 
+  // Live map of uid → avatarColor from all users
+  private userColors$: Observable<Record<string, string>> = this.followService.getAllUsers$().pipe(
+    map((users) => {
+      const colors: Record<string, string> = {};
+      for (const u of users) if (u.avatarColor) colors[u.uid] = u.avatarColor;
+      return colors;
+    }),
+  );
+  private userColorsSnapshot: Record<string, string> = {};
+
+  constructor() {
+    this.userColors$.subscribe((c) => (this.userColorsSnapshot = c));
+  }
+
   // For the "New Chat" picker
   newChatOpen = false;
 
@@ -40,9 +54,9 @@ export class ChatSidebar {
 
   getOtherColor(convo: Conversation): string {
     for (const [uid, color] of Object.entries(convo.participantColors || {})) {
-      if (uid !== this.currentUid) return color || '#22c55e';
+      if (uid !== this.currentUid) return this.userColorsSnapshot[uid] || color || '#0ea5a4';
     }
-    return '#22c55e';
+    return '#0ea5a4';
   }
 
   getInitials(name: string): string {

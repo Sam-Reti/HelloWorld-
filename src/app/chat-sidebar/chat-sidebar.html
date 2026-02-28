@@ -14,7 +14,7 @@
       <div class="picker-list">
         @for (user of (following$ | async) ?? []; track user.uid) {
           <button class="picker-user" (click)="startChat(user)">
-            <div class="avatar" [style.background]="user.avatarColor || '#22c55e'">
+            <div class="avatar" [style.background]="user.avatarColor || '#0ea5a4'">
               {{ getInitials(user.displayName) }}
             </div>
             <span class="picker-name">{{ user.displayName }}</span>

@@ -17,6 +17,7 @@ export type Post = {
   likeCount: number;
   commentCount: number;
   authorDisplayName?: string | null;
+  authorAvatarColor?: string | null;
 };
 
 export type Comment = {
@@ -25,6 +26,7 @@ export type Comment = {
   authorId: string;
   authorName: string | null;
   createdAt: any;
+  authorAvatarColor?: string | null;
 };
 
 @Injectable({
@@ -43,7 +45,9 @@ export class PostService {
 
     const userRef = doc(this.firestore, `users/${user.uid}`);
     const snap = await getDoc(userRef);
-    const displayName = snap.exists() ? ((snap.data() as any).displayName ?? null) : null;
+    const userData = snap.exists() ? (snap.data() as any) : null;
+    const displayName = userData?.displayName ?? null;
+    const avatarColor = userData?.avatarColor ?? null;
 
     const postsRef = collection(this.firestore, 'posts');
 
@@ -52,6 +56,7 @@ export class PostService {
       authorId: user.uid,
       authorName: user.email,
       authorDisplayName: displayName,
+      authorAvatarColor: avatarColor,
       createdAt: serverTimestamp(),
       likeCount: 0,
       commentCount: 0,
@@ -143,11 +148,16 @@ export class PostService {
     if (!postAuthorId) return;
 
     // 1) create comment
+    const userRef = doc(this.firestore, `users/${user.uid}`);
+    const userSnap = await getDoc(userRef);
+    const userData = userSnap.exists() ? (userSnap.data() as any) : null;
+
     const commentsRef = collection(this.firestore, `posts/${postId}/comments`);
     const commentDoc = await addDoc(commentsRef, {
       text: clean,
       authorId: user.uid,
       authorName: user.displayName || user.email || null,
+      authorAvatarColor: userData?.avatarColor ?? null,
       createdAt: serverTimestamp(),
     });
 

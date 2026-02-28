@@ -5,15 +5,34 @@ import { Auth } from '@angular/fire/auth';
 import { Router } from '@angular/router';
 
 const LANGUAGES = [
-  'JavaScript', 'TypeScript', 'Python', 'Rust', 'Go', 'Java',
-  'C++', 'C#', 'Swift', 'Kotlin', 'Ruby', 'PHP', 'Dart', 'HTML/CSS', 'SQL',
+  'JavaScript',
+  'TypeScript',
+  'Python',
+  'Rust',
+  'Go',
+  'Java',
+  'C++',
+  'C#',
+  'Swift',
+  'Kotlin',
+  'Ruby',
+  'PHP',
+  'Dart',
+  'HTML/CSS',
+  'SQL',
 ];
 
 const SKILL_LEVELS = ['Beginner', 'Learning', 'Intermediate', 'Advanced', 'Expert'];
 
 const AVATAR_COLORS = [
-  '#22c55e', '#6366f1', '#8b5cf6', '#ec4899',
-  '#f59e0b', '#06b6d4', '#f97316', '#64748b',
+  '#0ea5a4',
+  '#6366f1',
+  '#8b5cf6',
+  '#ec4899',
+  '#f59e0b',
+  '#06b6d4',
+  '#f97316',
+  '#64748b',
 ];
 
 @Component({

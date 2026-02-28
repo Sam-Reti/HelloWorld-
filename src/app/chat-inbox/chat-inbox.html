@@ -13,7 +13,7 @@
     @let color = convo.participantColors[other] ?? null;
 
     <button class="convo-card" (click)="open(convo)">
-      <div class="avatar" [style.background]="color">{{ initials(name) }}</div>
+      <div class="avatar" [style.background]="getColor(convo)">{{ initials(name) }}</div>
       <div class="convo-body">
         <div class="convo-name">{{ name }}</div>
         <div class="convo-preview">{{ convo.lastMessage || 'Say hello!' }}</div>

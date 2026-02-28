@@ -4,7 +4,7 @@
   @for (user of (users$ | async) ?? []; track user.uid) {
     <div class="user-card">
       <a [routerLink]="['/app-home/user', user.uid]" class="user-info">
-        <div class="card-avatar" [style.background]="user.avatarColor || '#22c55e'">
+        <div class="card-avatar" [style.background]="user.avatarColor || '#0ea5a4'">
           {{ getInitials(user.displayName) }}
         </div>
         <div class="card-body">
@@ -14,7 +14,9 @@
               <span class="skill-badge">{{ user.skillLevel }}</span>
             }
           </div>
-          @if (user.role) { <div class="user-role">{{ user.role }}</div> }
+          @if (user.role) {
+            <div class="user-role">{{ user.role }}</div>
+          }
           @if (user.languages?.length) {
             <div class="user-langs">
               @for (lang of (user.languages ?? []).slice(0, 4); track lang) {
@@ -26,8 +28,11 @@
         </div>
       </a>
       @if (user.uid !== currentUid) {
-        <button class="follow-btn" [class.following]="followingIds.includes(user.uid)"
-          (click)="toggle(user.uid, followingIds.includes(user.uid))">
+        <button
+          class="follow-btn"
+          [class.following]="followingIds.includes(user.uid)"
+          (click)="toggle(user.uid, followingIds.includes(user.uid))"
+        >
           {{ followingIds.includes(user.uid) ? 'Unfollow' : 'Follow' }}
         </button>
       }
