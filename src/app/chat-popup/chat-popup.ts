@@ -25,6 +25,7 @@ import { Firestore, doc, getDoc } from '@angular/fire/firestore';
 })
 export class ChatPopup implements AfterViewChecked, OnDestroy {
   @ViewChild('messageList') messageList?: ElementRef;
+  @ViewChild('msgInput') msgInput?: ElementRef<HTMLTextAreaElement>;
 
   private chatService = inject(ChatService);
   private auth = inject(Auth);
@@ -41,6 +42,8 @@ export class ChatPopup implements AfterViewChecked, OnDestroy {
   private presenceSub?: Subscription;
   private sub?: Subscription;
   private activeConvoId = '';
+  private popupEl?: HTMLElement;
+  private viewportHandler = () => this.onViewportResize();
 
   constructor() {
     // effect() runs whenever the signal value changes.
@@ -60,6 +63,16 @@ export class ChatPopup implements AfterViewChecked, OnDestroy {
       // Track online status of the other participant
       this.presenceSub?.unsubscribe();
       this.resolveOtherOnline(chat.conversationId);
+
+      // Mobile: lock body scroll & listen for keyboard resize
+      this.lockBodyScroll(true);
+      window.visualViewport?.addEventListener('resize', this.viewportHandler);
+
+      // Grab popup element after render and set initial height
+      requestAnimationFrame(() => {
+        this.popupEl = document.querySelector('.popup') as HTMLElement;
+        this.onViewportResize();
+      });
     });
   }
 
@@ -74,16 +87,40 @@ export class ChatPopup implements AfterViewChecked, OnDestroy {
     });
   }
 
+  private onViewportResize(): void {
+    if (window.innerWidth > 600) return;
+    const vv = window.visualViewport;
+    if (!vv || !this.popupEl) return;
+    // Set the popup height to the visual viewport so the keyboard doesn't push it off
+    this.popupEl.style.height = `${vv.height}px`;
+    this.popupEl.style.top = `${vv.offsetTop}px`;
+    this.scrollToBottom();
+  }
+
+  private scrollToBottom(): void {
+    const el = this.messageList?.nativeElement;
+    if (el) {
+      requestAnimationFrame(() => (el.scrollTop = el.scrollHeight));
+    }
+  }
+
+  private lockBodyScroll(lock: boolean): void {
+    if (window.innerWidth > 600) return;
+    document.body.style.overflow = lock ? 'hidden' : '';
+    document.documentElement.style.overflow = lock ? 'hidden' : '';
+  }
+
   ngAfterViewChecked(): void {
     if (!this.shouldScroll) return;
     this.shouldScroll = false;
-    const el = this.messageList?.nativeElement;
-    if (el) el.scrollTop = el.scrollHeight;
+    this.scrollToBottom();
   }
 
   ngOnDestroy(): void {
     this.sub?.unsubscribe();
     this.presenceSub?.unsubscribe();
+    window.visualViewport?.removeEventListener('resize', this.viewportHandler);
+    this.lockBodyScroll(false);
   }
 
   async send(): Promise<void> {
@@ -91,6 +128,8 @@ export class ChatPopup implements AfterViewChecked, OnDestroy {
     if (!chat || !this.text.trim()) return;
     const text = this.text;
     this.text = '';
+    // Refocus immediately so the keyboard stays open on mobile
+    this.msgInput?.nativeElement.focus();
     await this.chatService.sendMessage(chat.conversationId, text);
   }
 
@@ -108,6 +147,8 @@ export class ChatPopup implements AfterViewChecked, OnDestroy {
     }
     this.sub?.unsubscribe();
     this.presenceSub?.unsubscribe();
+    window.visualViewport?.removeEventListener('resize', this.viewportHandler);
+    this.lockBodyScroll(false);
     this.messages$ = undefined;
     this.activeConvoId = '';
     this.otherOnline = false;

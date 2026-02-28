@@ -5,7 +5,10 @@
   <div class="signupCard">
     @if (emailSent) {
       <h2>Check your inbox</h2>
-      <p>A verification email has been sent to <strong>{{ email }}</strong>.</p>
+      <p>
+        A verification email has been sent to <strong>{{ email }}</strong
+        >.
+      </p>
       <p>Please verify your email before logging in.</p>
       <a routerLink="/login">Go to Login</a>
       @if (message) {
@@ -14,10 +17,20 @@
       <button class="resend-btn" (click)="resendVerification()">Resend verification email</button>
     } @else {
       <h2>Join HelloWorld;</h2>
-      <input [(ngModel)]="email" placeholder="Email" />
-      <input [(ngModel)]="displayName" placeholder="Display Name" />
-      <input [(ngModel)]="password" type="password" placeholder="Password" />
-      <input [(ngModel)]="confirmPassword" type="password" placeholder="Confirm Password" />
+      <input [(ngModel)]="email" placeholder="Email" (keydown.enter)="signup()" />
+      <input [(ngModel)]="displayName" placeholder="Display Name" (keydown.enter)="signup()" />
+      <input
+        [(ngModel)]="password"
+        type="password"
+        placeholder="Password"
+        (keydown.enter)="signup()"
+      />
+      <input
+        [(ngModel)]="confirmPassword"
+        type="password"
+        placeholder="Confirm Password"
+        (keydown.enter)="signup()"
+      />
       @if (message) {
         <p class="message">{{ message }}</p>
       }

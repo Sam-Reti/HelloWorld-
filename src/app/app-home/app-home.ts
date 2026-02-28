@@ -158,12 +158,7 @@ export class AppHome implements OnInit {
   }
 
   async ngOnInit() {
-    const ok = await this.user.ensureUserProfile();
-
-    // don't redirect if you're already on edit-profile
-    if (!ok && !this.router.url.includes('edit-profile')) {
-      this.router.navigateByUrl('/app-home/edit-profile');
-    }
+    await this.user.ensureUserProfile();
   }
   editProfile() {
     this.router.navigateByUrl('/app-home/edit-profile');

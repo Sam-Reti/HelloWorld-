@@ -1,8 +1,9 @@
 import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Firestore, doc, getDoc, updateDoc } from '@angular/fire/firestore';
-import { Auth } from '@angular/fire/auth';
+import { Auth, authState } from '@angular/fire/auth';
 import { Router } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 
 const LANGUAGES = [
   'JavaScript',
@@ -64,7 +65,7 @@ export class Editprofile implements OnInit {
   readonly AVATAR_COLORS = AVATAR_COLORS;
 
   async ngOnInit() {
-    const user = this.auth.currentUser;
+    const user = await firstValueFrom(authState(this.auth));
     if (!user) return;
 
     const snap = await getDoc(doc(this.firestore, `users/${user.uid}`));
@@ -102,7 +103,7 @@ export class Editprofile implements OnInit {
   }
 
   async saveProfile() {
-    const user = this.auth.currentUser;
+    const user = await firstValueFrom(authState(this.auth));
     if (!user) return;
 
     await updateDoc(doc(this.firestore, `users/${user.uid}`), {

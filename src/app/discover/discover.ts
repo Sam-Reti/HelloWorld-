@@ -1,8 +1,10 @@
 import { Component, inject } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { Auth } from '@angular/fire/auth';
+import { Auth, authState } from '@angular/fire/auth';
 import { FollowService } from '../services/follow.service';
+import { firstValueFrom } from 'rxjs';
+import { tap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-discover',
@@ -15,9 +17,22 @@ export class Discover {
   private followService = inject(FollowService);
   private auth = inject(Auth);
 
-  users$ = this.followService.getAllUsers$();
+  users$ = this.followService.getAllUsers$().pipe(
+    tap((users) =>
+      console.log(
+        '[discover] users count:',
+        users.length,
+        'uids:',
+        users.map((u) => u.uid),
+      ),
+    ),
+  );
   followingIds$ = this.followService.getFollowingIds$();
-  currentUid = this.auth.currentUser?.uid ?? null;
+  currentUid: string | null = null;
+
+  constructor() {
+    firstValueFrom(authState(this.auth)).then((u) => (this.currentUid = u?.uid ?? null));
+  }
 
   getInitials(value: string | null | undefined): string {
     if (!value) return 'U';

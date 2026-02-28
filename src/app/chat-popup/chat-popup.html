@@ -30,6 +30,7 @@
         [(ngModel)]="text"
         (keydown)="onKeydown($event)"
         rows="1"
+        #msgInput
       ></textarea>
       <button class="send-btn" (click)="send()" [disabled]="!text.trim()">Send</button>
     </div>

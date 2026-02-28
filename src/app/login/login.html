@@ -6,8 +6,13 @@
   <div class="loginCard">
     <h2>HelloWorld;</h2>
 
-    <input [(ngModel)]="email" placeholder="Email" />
-    <input [(ngModel)]="password" type="password" placeholder="Password" />
+    <input [(ngModel)]="email" placeholder="Email" (keydown.enter)="login()" />
+    <input
+      [(ngModel)]="password"
+      type="password"
+      placeholder="Password"
+      (keydown.enter)="login()"
+    />
 
     <button (click)="login()">Login</button>
 
