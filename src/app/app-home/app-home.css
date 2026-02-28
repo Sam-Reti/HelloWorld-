@@ -39,6 +39,13 @@
   height: 50px;
 }
 
+.logo-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
 /* Search */
 .search {
   display: flex;
@@ -275,15 +282,21 @@
 
   border: 1px solid var(--border-input);
   background: var(--bg-card);
-  color: var(--text);
+  color: var(--text-muted);
 
   font-size: 18px;
   padding: 0;
   margin-left: 20px;
 }
 
+.bell-icon {
+  width: 18px;
+  height: 18px;
+}
+
 .notif-bell:hover {
   transform: scale(1.1);
+  color: var(--text);
 }
 
 .notif-badge {

@@ -141,22 +141,6 @@ export class ChatService {
       lastMessageSenderId: user.uid,
       unreadBy: otherUid ? arrayUnion(otherUid) : [],
     });
-
-    // Send a notification to the other user
-    if (otherUid) {
-      const senderName =
-        convoData?.participantNames?.[user.uid] || user.displayName || user.email || 'Someone';
-      const notifCol = collection(this.firestore, `users/${otherUid}/notifications`);
-      await addDoc(notifCol, {
-        type: 'message',
-        conversationId,
-        actorId: user.uid,
-        actorName: senderName,
-        preview: clean.length > 60 ? clean.slice(0, 60) + '...' : clean,
-        createdAt: serverTimestamp(),
-        read: false,
-      }).catch((e) => console.error('message notif failed', e));
-    }
   }
 
   // Remove current user from unreadBy when they open a conversation

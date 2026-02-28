@@ -21,9 +21,8 @@ import {
 } from '@angular/fire/firestore';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { collectionData } from '@angular/fire/firestore';
-import { Observable, Subject, of, combineLatest } from 'rxjs';
+import { Observable, Subject, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
-import { toObservable } from '@angular/core/rxjs-interop';
 import { AsyncPipe, SlicePipe } from '@angular/common';
 
 import { User } from '../services/user';
@@ -36,7 +35,6 @@ import { FormsModule } from '@angular/forms';
 import { map } from 'rxjs';
 import { docData } from '@angular/fire/firestore';
 import { authState } from '@angular/fire/auth';
-import { NgIf } from '@angular/common';
 import { ScrollService } from '../services/scroll.service';
 import { ThemeService } from '../services/theme.service';
 import { ChatPopup } from '../chat-popup/chat-popup';
@@ -53,7 +51,6 @@ import { ChatSidebar } from '../chat-sidebar/chat-sidebar';
     RouterLink,
     RouterLinkActive,
     AsyncPipe,
-    NgIf,
     FormsModule,
     SlicePipe,
     ChatPopup,
@@ -116,19 +113,9 @@ export class AppHome implements OnInit {
       const notifQuery = query(notifCol, orderBy('createdAt', 'desc'));
 
       const rawNotifs$ = collectionData(notifQuery, { idField: 'id' });
-      const openChat$ = toObservable(this.chatPopupService.openChat);
 
-      this.notifications$ = combineLatest([rawNotifs$, openChat$]).pipe(
-        map(([list, openChat]) =>
-          list.filter(
-            (n) =>
-              !(
-                n['type'] === 'message' &&
-                openChat &&
-                n['conversationId'] === openChat.conversationId
-              ),
-          ),
-        ),
+      this.notifications$ = rawNotifs$.pipe(
+        map((list) => list.filter((n) => n['type'] !== 'message')),
       );
 
       this.unreadCount$ = this.notifications$.pipe(
@@ -237,15 +224,6 @@ export class AppHome implements OnInit {
 
     if (notification.type === 'follow' && notification.actorId) {
       await this.router.navigateByUrl(`/app-home/user/${notification.actorId}`);
-      return;
-    }
-
-    if (notification.type === 'message' && notification.conversationId) {
-      this.chatPopupService.open({
-        conversationId: notification.conversationId,
-        name: notification.actorName || 'Unknown',
-        color: null,
-      });
       return;
     }
 

@@ -6,7 +6,9 @@
         <span></span><span></span><span></span>
       </button>
       <div class="logo">
-        <img src="assets/HelloWorld-Logo.png" alt="HelloWorld Logo" />
+        <button class="logo-btn" routerLink="feed" routerLinkActive="active">
+          <img src="assets/HelloWorld-Logo.png" alt="HelloWorld Logo" />
+        </button>
       </div>
     </div>
 
@@ -79,10 +81,15 @@
     <div class="top-actions">
       <div #notifContainer>
         <button class="notif-bell" type="button" (click)="toggleNotifications()">
-          🔔
-          <ng-container *ngIf="unreadCount$ | async as c">
-            <span *ngIf="c > 0" class="notif-badge">{{ c }}</span>
-          </ng-container>
+          <svg class="bell-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M12 2a7 7 0 0 0-7 7v3.29l-1.71 1.7a1 1 0 0 0 .71 1.71h16a1 1 0 0 0 .71-1.71L19 12.29V9a7 7 0 0 0-7-7Zm0 20a3 3 0 0 1-3-3h6a3 3 0 0 1-3 3Z"
+            />
+          </svg>
+          @let c = (unreadCount$ | async) ?? 0;
+          @if (c > 0) {
+            <span class="notif-badge">{{ c }}</span>
+          }
         </button>
 
         @if (notifOpen) {
@@ -102,9 +109,6 @@
                 }
                 @if (n.type === 'follow') {
                   <div>👤 {{ n.actorName || 'Someone' }} followed you</div>
-                }
-                @if (n.type === 'message') {
-                  <div>💬 {{ n.actorName || 'Someone' }}: {{ n.preview || 'sent a message' }}</div>
                 }
               </div>
             }
