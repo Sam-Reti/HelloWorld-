@@ -2,10 +2,14 @@
 
 @if (chat) {
   <div class="popup">
-
     <div class="popup-header">
-      <div class="header-avatar" [style.background]="chat.color">
-        {{ getInitials(chat.name) }}
+      <div class="header-avatar-wrap">
+        <div class="header-avatar" [style.background]="chat.color">
+          {{ getInitials(chat.name) }}
+        </div>
+        @if (otherOnline) {
+          <span class="online-dot"></span>
+        }
       </div>
       <span class="popup-name">{{ chat.name }}</span>
       <button class="close-btn" (click)="close()">✕</button>
@@ -20,15 +24,14 @@
     </div>
 
     <div class="input-row">
-      <input
+      <textarea
         class="msg-input"
-        type="text"
         placeholder="Message…"
         [(ngModel)]="text"
-        (keydown.enter)="send()"
-      />
+        (keydown)="onKeydown($event)"
+        rows="1"
+      ></textarea>
       <button class="send-btn" (click)="send()" [disabled]="!text.trim()">Send</button>
     </div>
-
   </div>
 }

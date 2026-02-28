@@ -37,6 +37,22 @@
   flex-shrink: 0;
 }
 
+.header-avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.online-dot {
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #22c55e;
+  border: 2px solid var(--bg-card);
+}
+
 .popup-name {
   flex: 1;
   font-size: 14px;
@@ -104,6 +120,7 @@
 
 .input-row {
   display: flex;
+  align-items: flex-end;
   gap: 6px;
   padding: 10px 12px;
   border-top: 1px solid var(--border);
@@ -113,13 +130,18 @@
 .msg-input {
   flex: 1;
   border: 1px solid var(--border-input);
-  border-radius: 999px;
+  border-radius: 16px;
   padding: 8px 12px;
   font-size: 13px;
   font-family: inherit;
   background: var(--bg-subtle);
   color: var(--text);
   outline: none;
+  resize: none;
+  max-height: 100px;
+  overflow-y: auto;
+  line-height: 1.4;
+  field-sizing: content;
 }
 
 .msg-input:focus {

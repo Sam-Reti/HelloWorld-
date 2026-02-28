@@ -21,14 +21,18 @@ import {
 } from '@angular/fire/firestore';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { collectionData } from '@angular/fire/firestore';
-import { Observable } from 'rxjs';
-import { AsyncPipe } from '@angular/common';
+import { Observable, Subject, of, combineLatest } from 'rxjs';
+import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { toObservable } from '@angular/core/rxjs-interop';
+import { AsyncPipe, SlicePipe } from '@angular/common';
 
 import { User } from '../services/user';
+import { SearchService, SearchResults } from '../services/search.service';
 import { Feed } from '../feed/feed';
 import { Profile } from '../profile/profile';
 import { Editprofile } from '../editprofile/editprofile';
 import { NgZone } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { map } from 'rxjs';
 import { docData } from '@angular/fire/firestore';
 import { authState } from '@angular/fire/auth';
@@ -36,12 +40,25 @@ import { NgIf } from '@angular/common';
 import { ScrollService } from '../services/scroll.service';
 import { ThemeService } from '../services/theme.service';
 import { ChatPopup } from '../chat-popup/chat-popup';
+import { ChatPopupService } from '../services/chat-popup.service';
+import { ChatService } from '../services/chat.service';
+import { PresenceService } from '../services/presence.service';
 import { ChatSidebar } from '../chat-sidebar/chat-sidebar';
 
 @Component({
   selector: 'app-app-home',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, AsyncPipe, NgIf, ChatPopup, ChatSidebar],
+  imports: [
+    RouterOutlet,
+    RouterLink,
+    RouterLinkActive,
+    AsyncPipe,
+    NgIf,
+    FormsModule,
+    SlicePipe,
+    ChatPopup,
+    ChatSidebar,
+  ],
   templateUrl: './app-home.html',
   styleUrl: './app-home.css',
 })
@@ -59,6 +76,16 @@ export class AppHome implements OnInit {
   menuOpen = false;
   currentUid: string | null = null;
 
+  // Search
+  searchTerm = '';
+  searchOpen = false;
+  private searchSubject = new Subject<string>();
+  searchResults$: Observable<SearchResults> = this.searchSubject.pipe(
+    debounceTime(250),
+    distinctUntilChanged(),
+    switchMap((term) => this.searchService.search(term)),
+  );
+
   constructor(
     private auth: Auth,
     private router: Router,
@@ -66,6 +93,10 @@ export class AppHome implements OnInit {
     private firestore: Firestore,
     private scrollService: ScrollService,
     private themeService: ThemeService,
+    private searchService: SearchService,
+    private chatPopupService: ChatPopupService,
+    private chatService: ChatService,
+    private presenceService: PresenceService,
     private cdr: ChangeDetectorRef,
   ) {
     this.themeService.init();
@@ -84,7 +115,21 @@ export class AppHome implements OnInit {
       const notifCol = collection(this.firestore, `users/${user.uid}/notifications`);
       const notifQuery = query(notifCol, orderBy('createdAt', 'desc'));
 
-      this.notifications$ = collectionData(notifQuery, { idField: 'id' });
+      const rawNotifs$ = collectionData(notifQuery, { idField: 'id' });
+      const openChat$ = toObservable(this.chatPopupService.openChat);
+
+      this.notifications$ = combineLatest([rawNotifs$, openChat$]).pipe(
+        map(([list, openChat]) =>
+          list.filter(
+            (n) =>
+              !(
+                n['type'] === 'message' &&
+                openChat &&
+                n['conversationId'] === openChat.conversationId
+              ),
+          ),
+        ),
+      );
 
       this.unreadCount$ = this.notifications$.pipe(
         map((list) => list.filter((n) => !n.read).length),
@@ -158,10 +203,37 @@ export class AppHome implements OnInit {
       }
     });
   }
+  onSearchInput() {
+    this.searchSubject.next(this.searchTerm);
+    this.searchOpen = this.searchTerm.trim().length > 0;
+  }
+
+  clearSearch() {
+    this.searchTerm = '';
+    this.searchOpen = false;
+  }
+
+  goToUser(uid: string) {
+    this.clearSearch();
+    this.router.navigateByUrl(`/app-home/user/${uid}`);
+  }
+
+  goToPost(postId: string) {
+    this.clearSearch();
+    this.router.navigateByUrl('/app-home/feed').then(() => {
+      this.scrollService.scrollToPost(postId);
+    });
+  }
+
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     if (this.notifContainer && !this.notifContainer.nativeElement.contains(event.target)) {
       this.notifOpen = false;
+    }
+    // Close search dropdown when clicking outside
+    const searchEl = document.querySelector('.search');
+    if (searchEl && !searchEl.contains(event.target as Node)) {
+      this.searchOpen = false;
     }
   }
 
@@ -170,6 +242,15 @@ export class AppHome implements OnInit {
 
     if (notification.type === 'follow' && notification.actorId) {
       await this.router.navigateByUrl(`/app-home/user/${notification.actorId}`);
+      return;
+    }
+
+    if (notification.type === 'message' && notification.conversationId) {
+      this.chatPopupService.open({
+        conversationId: notification.conversationId,
+        name: notification.actorName || 'Unknown',
+        color: null,
+      });
       return;
     }
 

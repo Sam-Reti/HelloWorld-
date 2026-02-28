@@ -11,8 +11,10 @@ import { AsyncPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Auth } from '@angular/fire/auth';
 import { Observable, Subscription } from 'rxjs';
-import { ChatService, Message } from '../services/chat.service';
+import { ChatService, Message, Conversation } from '../services/chat.service';
 import { ChatPopupService } from '../services/chat-popup.service';
+import { PresenceService } from '../services/presence.service';
+import { Firestore, doc, getDoc } from '@angular/fire/firestore';
 
 @Component({
   selector: 'app-chat-popup',
@@ -26,13 +28,17 @@ export class ChatPopup implements AfterViewChecked, OnDestroy {
 
   private chatService = inject(ChatService);
   private auth = inject(Auth);
+  private firestore = inject(Firestore);
+  private presenceService = inject(PresenceService);
   readonly popup = inject(ChatPopupService);
 
   currentUid = this.auth.currentUser?.uid ?? '';
+  otherOnline = false;
   text = '';
   messages$?: Observable<Message[]>;
 
   private shouldScroll = false;
+  private presenceSub?: Subscription;
   private sub?: Subscription;
   private activeConvoId = '';
 
@@ -48,6 +54,23 @@ export class ChatPopup implements AfterViewChecked, OnDestroy {
       this.sub = this.messages$.subscribe(() => {
         this.shouldScroll = true;
       });
+      // Mark this conversation as read for the current user
+      this.chatService.markRead(chat.conversationId);
+
+      // Track online status of the other participant
+      this.presenceSub?.unsubscribe();
+      this.resolveOtherOnline(chat.conversationId);
+    });
+  }
+
+  private async resolveOtherOnline(convoId: string): Promise<void> {
+    const convoRef = doc(this.firestore, `conversations/${convoId}`);
+    const snap = await getDoc(convoRef);
+    const data = snap.data() as Conversation | undefined;
+    const otherUid = data?.participantIds?.find((id) => id !== this.currentUid) ?? '';
+    if (!otherUid) return;
+    this.presenceSub = this.presenceService.onlineUsers$.subscribe((online) => {
+      this.otherOnline = online.has(otherUid);
     });
   }
 
@@ -60,6 +83,7 @@ export class ChatPopup implements AfterViewChecked, OnDestroy {
 
   ngOnDestroy(): void {
     this.sub?.unsubscribe();
+    this.presenceSub?.unsubscribe();
   }
 
   async send(): Promise<void> {
@@ -70,10 +94,23 @@ export class ChatPopup implements AfterViewChecked, OnDestroy {
     await this.chatService.sendMessage(chat.conversationId, text);
   }
 
+  onKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      this.send();
+    }
+  }
+
   close(): void {
+    // Mark conversation as read before closing
+    if (this.activeConvoId) {
+      this.chatService.markRead(this.activeConvoId);
+    }
     this.sub?.unsubscribe();
+    this.presenceSub?.unsubscribe();
     this.messages$ = undefined;
     this.activeConvoId = '';
+    this.otherOnline = false;
     this.popup.close();
   }
 

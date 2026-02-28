@@ -5,6 +5,7 @@ import { Observable, combineLatest, map } from 'rxjs';
 import { ChatService, Conversation } from '../services/chat.service';
 import { ChatPopupService } from '../services/chat-popup.service';
 import { FollowService, PublicUser } from '../services/follow.service';
+import { PresenceService } from '../services/presence.service';
 
 @Component({
   selector: 'app-chat-sidebar',
@@ -19,7 +20,10 @@ export class ChatSidebar {
   private followService = inject(FollowService);
   private auth = inject(Auth);
 
+  private presenceService = inject(PresenceService);
+
   currentUid = this.auth.currentUser?.uid ?? '';
+  private onlineSnapshot = new Set<string>();
 
   conversations$: Observable<Conversation[]> = this.chatService.getConversations$();
 
@@ -35,6 +39,7 @@ export class ChatSidebar {
 
   constructor() {
     this.userColors$.subscribe((c) => (this.userColorsSnapshot = c));
+    this.presenceService.onlineUsers$.subscribe((s) => (this.onlineSnapshot = s));
   }
 
   // For the "New Chat" picker
@@ -66,10 +71,27 @@ export class ChatSidebar {
     return (parts[0][0] + parts[1][0]).toUpperCase();
   }
 
+  getOtherUid(convo: Conversation): string {
+    return convo.participantIds?.find((id) => id !== this.currentUid) ?? '';
+  }
+
+  isOnline(convo: Conversation): boolean {
+    return this.onlineSnapshot.has(this.getOtherUid(convo));
+  }
+
+  isUserOnline(uid: string): boolean {
+    return this.onlineSnapshot.has(uid);
+  }
+
   openConversation(convo: Conversation): void {
     const name = this.getOtherName(convo);
     const color = this.getOtherColor(convo);
     this.chatPopup.open({ conversationId: convo.id, name, color });
+  }
+
+  isUnread(convo: Conversation): boolean {
+    if (this.chatPopup.openChat()?.conversationId === convo.id) return false;
+    return convo.unreadBy?.includes(this.currentUid) ?? false;
   }
 
   toggleNewChat(): void {

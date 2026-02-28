@@ -11,7 +11,69 @@
     </div>
 
     <div class="search">
-      <input type="text" placeholder="Search posts, people, tags..." />
+      <input
+        type="text"
+        placeholder="Search posts, people, tags..."
+        [(ngModel)]="searchTerm"
+        (input)="onSearchInput()"
+        (focus)="searchOpen = searchTerm.trim().length > 0"
+        (keydown.escape)="clearSearch()"
+      />
+
+      @if (searchOpen) {
+        <div class="search-dropdown">
+          @if (searchResults$ | async; as results) {
+            @if (results.people.length) {
+              <div class="search-section">
+                <div class="search-section-title">People</div>
+                @for (user of results.people; track user.uid) {
+                  <div class="search-item" (click)="goToUser(user.uid)">
+                    <div class="search-avatar" [style.background]="user.avatarColor || '#0ea5a4'">
+                      {{ getInitials(user.displayName) }}
+                    </div>
+                    <div class="search-info">
+                      <div class="search-name">{{ user.displayName }}</div>
+                      @if (user.role) {
+                        <div class="search-sub">{{ user.role }}</div>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+
+            @if (results.posts.length) {
+              <div class="search-section">
+                <div class="search-section-title">Posts</div>
+                @for (post of results.posts; track post.id) {
+                  <div class="search-item" (click)="goToPost(post.id!)">
+                    <div
+                      class="search-avatar"
+                      [style.background]="post.authorAvatarColor || '#0ea5a4'"
+                    >
+                      {{ getInitials(post.authorDisplayName || post.authorName) }}
+                    </div>
+                    <div class="search-info">
+                      <div class="search-name">
+                        {{ post.authorDisplayName || post.authorName || 'Anonymous' }}
+                      </div>
+                      <div class="search-sub search-excerpt">
+                        {{ post.text | slice: 0 : 80 }}{{ post.text.length > 80 ? '...' : '' }}
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+
+            @if (!results.people.length && !results.posts.length) {
+              <div class="search-empty">No results for "{{ searchTerm }}"</div>
+            }
+          } @else {
+            <div class="search-empty">Searching...</div>
+          }
+        </div>
+      }
     </div>
 
     <div class="top-actions">
@@ -40,6 +102,9 @@
                 }
                 @if (n.type === 'follow') {
                   <div>👤 {{ n.actorName || 'Someone' }} followed you</div>
+                }
+                @if (n.type === 'message') {
+                  <div>💬 {{ n.actorName || 'Someone' }}: {{ n.preview || 'sent a message' }}</div>
                 }
               </div>
             }

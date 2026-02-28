@@ -4,6 +4,7 @@ import { Auth } from '@angular/fire/auth';
 import { ChatService, Conversation } from '../services/chat.service';
 import { ChatPopupService } from '../services/chat-popup.service';
 import { FollowService } from '../services/follow.service';
+import { PresenceService } from '../services/presence.service';
 import { Observable, map } from 'rxjs';
 
 @Component({
@@ -19,8 +20,11 @@ export class ChatInbox {
   private auth = inject(Auth);
   private followService = inject(FollowService);
 
+  private presenceService = inject(PresenceService);
+
   conversations$ = this.chatService.getConversations$();
   currentUid = this.auth.currentUser?.uid ?? '';
+  private onlineSnapshot = new Set<string>();
 
   // Live map of uid → avatarColor
   private userColors$: Observable<Record<string, string>> = this.followService.getAllUsers$().pipe(
@@ -34,6 +38,12 @@ export class ChatInbox {
 
   constructor() {
     this.userColors$.subscribe((c) => (this.userColorsSnapshot = c));
+    this.presenceService.onlineUsers$.subscribe((s) => (this.onlineSnapshot = s));
+  }
+
+  isOnline(convo: Conversation): boolean {
+    const other = this.otherUid(convo.participantIds);
+    return this.onlineSnapshot.has(other);
   }
 
   otherUid(participantIds: string[]): string {

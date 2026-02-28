@@ -8,6 +8,7 @@
   display: flex;
   flex-direction: column;
   position: relative;
+  overflow: hidden;
 }
 
 .sidebar-header {
@@ -66,12 +67,69 @@
   background: none;
   cursor: pointer;
   width: 100%;
+  min-width: 0;
+  overflow: hidden;
   text-align: left;
   transition: background 0.15s;
 }
 
 .convo-row:hover {
   background: var(--bg-subtle);
+}
+
+/* Unread conversation highlight */
+.convo-row.unread {
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.convo-row.unread .convo-name {
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.convo-row.unread .convo-preview {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.convo-avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.unread-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg-card);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.3);
+  }
+}
+
+.online-dot {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #22c55e;
+  border: 2px solid var(--bg-card);
 }
 
 .avatar {

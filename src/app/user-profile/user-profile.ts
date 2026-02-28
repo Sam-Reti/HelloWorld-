@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 import { startWith } from 'rxjs';
 import { FollowService, PublicUser } from '../services/follow.service';
 import { ChatService } from '../services/chat.service';
-import { Router } from '@angular/router';
+import { ChatPopupService } from '../services/chat-popup.service';
 
 @Component({
   selector: 'app-user-profile',
@@ -22,7 +22,7 @@ export class UserProfile implements OnInit {
   private auth = inject(Auth);
   private followService = inject(FollowService);
   private chatService = inject(ChatService);
-  private router = inject(Router);
+  private chatPopup = inject(ChatPopupService);
   private cdr = inject(ChangeDetectorRef);
 
   profile: PublicUser | null = null;
@@ -62,7 +62,11 @@ export class UserProfile implements OnInit {
   async message(): Promise<void> {
     if (!this.profile) return;
     const id = await this.chatService.getOrCreateConversation(this.profile.uid);
-    this.router.navigate(['/app-home/messages', id]);
+    this.chatPopup.open({
+      conversationId: id,
+      name: this.profile.displayName,
+      color: this.profile.avatarColor ?? null,
+    });
   }
 
   getInitials(value: string | null | undefined): string {

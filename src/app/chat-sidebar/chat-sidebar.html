@@ -14,8 +14,13 @@
       <div class="picker-list">
         @for (user of (following$ | async) ?? []; track user.uid) {
           <button class="picker-user" (click)="startChat(user)">
-            <div class="avatar" [style.background]="user.avatarColor || '#0ea5a4'">
-              {{ getInitials(user.displayName) }}
+            <div class="convo-avatar-wrap">
+              <div class="avatar" [style.background]="user.avatarColor || '#0ea5a4'">
+                {{ getInitials(user.displayName) }}
+              </div>
+              @if (isUserOnline(user.uid)) {
+                <span class="online-dot"></span>
+              }
             </div>
             <span class="picker-name">{{ user.displayName }}</span>
           </button>
@@ -30,9 +35,16 @@
   <!-- Conversation list -->
   <div class="convo-list">
     @for (convo of (conversations$ | async) ?? []; track convo.id) {
-      <button class="convo-row" (click)="openConversation(convo)">
-        <div class="avatar" [style.background]="getOtherColor(convo)">
-          {{ getInitials(getOtherName(convo)) }}
+      <button class="convo-row" [class.unread]="isUnread(convo)" (click)="openConversation(convo)">
+        <div class="convo-avatar-wrap">
+          <div class="avatar" [style.background]="getOtherColor(convo)">
+            {{ getInitials(getOtherName(convo)) }}
+          </div>
+          @if (isUnread(convo)) {
+            <span class="unread-dot"></span>
+          } @else if (isOnline(convo)) {
+            <span class="online-dot"></span>
+          }
         </div>
         <div class="convo-info">
           <div class="convo-name">{{ getOtherName(convo) }}</div>
