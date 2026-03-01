@@ -48,7 +48,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--bg-subtle);
   border-radius: 10px;
   padding: 10px 12px;
   margin-bottom: 10px;
@@ -79,7 +79,7 @@
   min-height: 0;
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255,255,255,0.12) transparent;
+  scrollbar-color: var(--border) transparent;
   padding-right: 4px;
   display: flex;
   flex-direction: column;
