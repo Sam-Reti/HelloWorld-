@@ -344,14 +344,21 @@
 .right {
   min-height: 0;
   min-width: 0;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
   padding-right: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
 .right-inline {
   display: none;
   min-width: 0;
   overflow: hidden;
+  flex-direction: column;
+  gap: 14px;
 }
 
 /* Topbar-left groups hamburger + logo */
@@ -505,7 +512,7 @@
     display: none;
   }
   .right-inline {
-    display: block;
+    display: flex;
     margin-top: 18px;
   }
 }

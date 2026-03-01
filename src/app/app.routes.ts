@@ -42,6 +42,10 @@ export const routes: Routes = [
       { path: 'following', component: Following },
       { path: 'user/:uid', component: UserProfile },
       { path: 'messages', component: ChatInbox },
+      {
+        path: 'practice',
+        loadComponent: () => import('./practice/practice').then((m) => m.PracticeComponent),
+      },
     ],
   },
   { path: '**', redirectTo: 'home' },

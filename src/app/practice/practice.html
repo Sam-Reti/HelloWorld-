@@ -1,0 +1,170 @@
+<div class="practice-container">
+  <div class="practice-header">
+    <h2 class="practice-title">Practice Room</h2>
+    <p class="practice-subtitle">Fix AI-generated buggy code and get instant feedback</p>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="error-banner">{{ errorMessage() }}</div>
+  }
+
+  @if (state() === 'selecting') {
+    <div class="select-panel">
+      <div class="select-group">
+        <div class="select-label">Language</div>
+        <div class="chip-row">
+          @for (lang of languages; track lang) {
+            <button
+              class="chip"
+              [class.selected]="selectedLanguage() === lang"
+              (click)="selectedLanguage.set(lang)"
+            >
+              {{ lang }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="select-group">
+        <div class="select-label">Category</div>
+        <div class="chip-row">
+          @for (cat of categories; track cat) {
+            <button
+              class="chip"
+              [class.selected]="selectedCategory() === cat"
+              (click)="selectedCategory.set(cat)"
+            >
+              {{ cat }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="select-group">
+        <div class="select-label">Difficulty</div>
+        <div class="chip-row">
+          @for (lvl of levels; track lvl) {
+            <button
+              class="chip level-chip"
+              [class.selected]="selectedLevel() === lvl"
+              [class.easy]="lvl === 'Easy'"
+              [class.medium]="lvl === 'Medium'"
+              [class.hard]="lvl === 'Hard'"
+              (click)="selectedLevel.set(lvl)"
+            >
+              {{ lvl }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <button class="btn-primary generate-btn" (click)="generateChallenge()">
+        Generate Challenge
+      </button>
+    </div>
+  }
+
+  @if (state() === 'loading' || state() === 'grading') {
+    <div class="spinner-container">
+      <div class="spinner"></div>
+      <p class="spinner-label">
+        {{ state() === 'loading' ? 'Generating your challenge...' : 'Grading your solution...' }}
+      </p>
+    </div>
+  }
+
+  @if (state() === 'coding') {
+    <div class="coding-panel">
+      @if (challenge(); as ch) {
+        <div class="description-box">
+          <div class="description-label">Challenge</div>
+          <p class="description-text">{{ ch.description }}</p>
+        </div>
+      }
+
+      <div class="editor-wrapper">
+        <app-code-editor
+          [language]="selectedLanguage()"
+          [initialCode]="challenge()?.code ?? ''"
+          (codeChange)="onCodeChange($event)"
+        />
+      </div>
+
+      <div class="coding-actions">
+        <button class="btn-primary" (click)="submitSolution()">Submit Fix</button>
+        <button class="btn-secondary" (click)="cancelCoding()">Cancel</button>
+      </div>
+    </div>
+  }
+
+  @if (state() === 'result') {
+    @if (gradeResult(); as gr) {
+      <div class="result-panel">
+        <div class="result-summary">
+          <div class="score-circle" [style.border-color]="gradeColor(gr.grade)">
+            <span class="score-number">{{ gr.score }}</span>
+            <span class="score-label">/ 100</span>
+          </div>
+
+          <div class="grade-letter" [style.color]="gradeColor(gr.grade)">{{ gr.grade }}</div>
+
+          <div class="result-meta">
+            <span class="meta-chip">{{ selectedLanguage() }}</span>
+            <span class="meta-chip">{{ selectedCategory() }}</span>
+            <span class="meta-chip">{{ selectedLevel() }}</span>
+          </div>
+        </div>
+
+        <div class="tabbed-box">
+          <div class="tab-bar">
+            <button
+              class="tab-btn"
+              [class.active]="feedbackTab() === 'feedback'"
+              (click)="feedbackTab.set('feedback')"
+            >Feedback</button>
+            <button
+              class="tab-btn"
+              [class.active]="feedbackTab() === 'question'"
+              (click)="feedbackTab.set('question')"
+            >Question</button>
+          </div>
+          @if (feedbackTab() === 'feedback') {
+            <p class="feedback-text">{{ gr.feedback }}</p>
+          } @else {
+            <p class="feedback-text">{{ challenge()?.description }}</p>
+          }
+        </div>
+
+        <div class="code-comparison">
+          <div class="code-block">
+            <div class="tab-bar">
+              <span class="tab-btn active">Your Submission</span>
+            </div>
+            <div class="editor-wrapper">
+              <app-code-editor
+                [language]="selectedLanguage()"
+                [initialCode]="submission()"
+                [readonly]="true"
+              />
+            </div>
+          </div>
+
+          <div class="code-block">
+            <div class="tab-bar">
+              <span class="tab-btn active">Corrected Solution</span>
+            </div>
+            <div class="editor-wrapper">
+              <app-code-editor
+                [language]="selectedLanguage()"
+                [initialCode]="gr.correctedCode"
+                [readonly]="true"
+              />
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-primary try-another-btn" (click)="reset()">Try Another</button>
+      </div>
+    }
+  }
+</div>

@@ -165,6 +165,13 @@
       >
       <a
         class="drawer-nav-item"
+        routerLink="practice"
+        routerLinkActive="active"
+        (click)="toggleMenu()"
+        >Practice Room</a
+      >
+      <a
+        class="drawer-nav-item"
         routerLink="profile"
         routerLinkActive="active"
         (click)="toggleMenu()"
@@ -183,11 +190,13 @@
           <a class="nav-item" routerLink="discover" routerLinkActive="active">Discover</a>
           <a class="nav-item" routerLink="following" routerLinkActive="active">Following</a>
           <a class="nav-item" routerLink="messages" routerLinkActive="active">Messages</a>
+          <a class="nav-item" routerLink="practice" routerLinkActive="active">Practice Room</a>
           <a class="nav-item" routerLink="profile" routerLinkActive="active">Profile</a>
         </nav>
       </div>
       <div class="right-inline">
         <app-chat-sidebar />
+        <app-practice-sidebar />
       </div>
     </aside>
 
@@ -199,6 +208,7 @@
 
     <aside class="right">
       <app-chat-sidebar />
+      <app-practice-sidebar />
     </aside>
   </main>
 

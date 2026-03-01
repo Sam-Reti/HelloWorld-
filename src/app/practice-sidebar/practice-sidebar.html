@@ -1,0 +1,37 @@
+<div class="sidebar-card">
+  <div class="sidebar-header">
+    <span class="sidebar-title">Practice Room</span>
+    <a class="practice-link" routerLink="/app-home/practice">+ New</a>
+  </div>
+
+  @if (averageScore$ | async; as avg) {
+    <div class="avg-row">
+      <span class="avg-label">Average score</span>
+      <span class="avg-score">{{ avg }}<span class="avg-denom">/100</span></span>
+    </div>
+  }
+
+  <div class="session-list">
+    @if (sessions$ | async; as sessions) {
+      @if (sessions.length === 0) {
+        <div class="empty">No sessions yet</div>
+      }
+      @for (s of sessions; track s.createdAt) {
+        <div class="session-row">
+          <div
+            class="grade-badge"
+            [style.background]="gradeColor(s.grade) + '22'"
+            [style.color]="gradeColor(s.grade)"
+          >
+            {{ s.grade }}
+          </div>
+          <div class="session-info">
+            <div class="session-lang">{{ s.language }} · {{ s.level }}</div>
+            <div class="session-cat">{{ s.category }}</div>
+          </div>
+          <div class="session-score">{{ s.score }}</div>
+        </div>
+      }
+    }
+  </div>
+</div>

@@ -7,6 +7,7 @@ import {
   ViewChild,
   inject,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Auth } from '@angular/fire/auth';
 import { signOut } from 'firebase/auth';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -42,6 +43,7 @@ import { ChatPopupService } from '../services/chat-popup.service';
 import { ChatService } from '../services/chat.service';
 import { PresenceService } from '../services/presence.service';
 import { ChatSidebar } from '../chat-sidebar/chat-sidebar';
+import { PracticeSidebar } from '../practice-sidebar/practice-sidebar';
 
 @Component({
   selector: 'app-app-home',
@@ -55,6 +57,7 @@ import { ChatSidebar } from '../chat-sidebar/chat-sidebar';
     SlicePipe,
     ChatPopup,
     ChatSidebar,
+    PracticeSidebar,
   ],
   templateUrl: './app-home.html',
   styleUrl: './app-home.css',
@@ -97,31 +100,33 @@ export class AppHome implements OnInit {
     private cdr: ChangeDetectorRef,
   ) {
     this.themeService.init();
-    authState(this.auth).subscribe(async (user) => {
-      if (!user) return;
+    authState(this.auth)
+      .pipe(takeUntilDestroyed())
+      .subscribe(async (user) => {
+        if (!user) return;
 
-      this.currentUid = user.uid;
+        this.currentUid = user.uid;
 
-      const userRef = doc(this.firestore, `users/${user.uid}`);
-      const snap = await getDoc(userRef);
-      const data = snap.exists() ? (snap.data() as any) : null;
-      this.displayName = data?.displayName ?? null;
-      this.avatarColor = data?.avatarColor ?? null;
-      this.cdr.detectChanges();
+        const userRef = doc(this.firestore, `users/${user.uid}`);
+        const snap = await getDoc(userRef);
+        const data = snap.exists() ? (snap.data() as any) : null;
+        this.displayName = data?.displayName ?? null;
+        this.avatarColor = data?.avatarColor ?? null;
+        this.cdr.detectChanges();
 
-      const notifCol = collection(this.firestore, `users/${user.uid}/notifications`);
-      const notifQuery = query(notifCol, orderBy('createdAt', 'desc'));
+        const notifCol = collection(this.firestore, `users/${user.uid}/notifications`);
+        const notifQuery = query(notifCol, orderBy('createdAt', 'desc'));
 
-      const rawNotifs$ = collectionData(notifQuery, { idField: 'id' });
+        const rawNotifs$ = collectionData(notifQuery, { idField: 'id' });
 
-      this.notifications$ = rawNotifs$.pipe(
-        map((list) => list.filter((n) => n['type'] !== 'message')),
-      );
+        this.notifications$ = rawNotifs$.pipe(
+          map((list) => list.filter((n) => n['type'] !== 'message')),
+        );
 
-      this.unreadCount$ = this.notifications$.pipe(
-        map((list) => list.filter((n) => !n.read).length),
-      );
-    });
+        this.unreadCount$ = this.notifications$.pipe(
+          map((list) => list.filter((n) => !n.read).length),
+        );
+      });
   }
   async logout() {
     try {
