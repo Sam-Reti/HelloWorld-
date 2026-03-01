@@ -20,12 +20,16 @@ export class User {
 
     if (!snap.exists()) {
       const defaultName = user.email?.split('@')[0] || 'New User';
-      await setDoc(userRef, {
-        displayName: defaultName,
-        bio: '',
-        avatarColor: '#0ea5a4',
-        createdAt: serverTimestamp(),
-      });
+      await setDoc(
+        userRef,
+        {
+          displayName: defaultName,
+          bio: '',
+          avatarColor: '#0ea5a4',
+          createdAt: serverTimestamp(),
+        },
+        { merge: true },
+      );
     }
   }
 }
