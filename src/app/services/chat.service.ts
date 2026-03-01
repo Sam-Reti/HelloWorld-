@@ -57,7 +57,7 @@ export class ChatService {
     if (!user) throw new Error('Not authenticated');
 
     const id = this.conversationId(user.uid, otherUid);
-    const convoRef = doc(this.firestore, `conversations/${id}`);
+    const convoRef = this.convoRef(id);
     const snap = await getDoc(convoRef);
 
     if (!snap.exists()) {
@@ -113,43 +113,38 @@ export class ChatService {
     return collectionData(q, { idField: 'id' }) as Observable<Message[]>;
   }
 
-  // Write a message then update the conversation's preview fields.
-  async sendMessage(conversationId: string, text: string): Promise<void> {
-    const user = this.auth.currentUser;
-    if (!user) throw new Error('Not authenticated');
+  /** Extract the other participant's UID from a deterministic conversation ID. */
+  private otherUid(conversationId: string): string | null {
+    const uid = this.auth.currentUser?.uid;
+    if (!uid) return null;
+    return conversationId.split('__').find((id) => id !== uid) ?? null;
+  }
 
+  /** Ref shorthand for a conversation document. */
+  private convoRef(id: string) {
+    return doc(this.firestore, `conversations/${id}`);
+  }
+
+  async sendMessage(conversationId: string, text: string): Promise<void> {
+    const uid = this.auth.currentUser?.uid;
     const clean = text.trim();
-    if (!clean) return;
+    if (!uid || !clean) return;
 
     const messagesCol = collection(this.firestore, `conversations/${conversationId}/messages`);
-    await addDoc(messagesCol, {
-      senderId: user.uid,
-      text: clean,
-      createdAt: serverTimestamp(),
-    });
+    await addDoc(messagesCol, { senderId: uid, text: clean, createdAt: serverTimestamp() });
 
-    // Figure out who the other participant is
-    const convoRef = doc(this.firestore, `conversations/${conversationId}`);
-    const convoSnap = await getDoc(convoRef);
-    const convoData = convoSnap.data() as Conversation | undefined;
-    const otherUid = convoData?.participantIds?.find((id) => id !== user.uid);
-
-    // Update conversation preview + mark other user as unread
-    await updateDoc(convoRef, {
+    const other = this.otherUid(conversationId);
+    await updateDoc(this.convoRef(conversationId), {
       lastMessage: clean,
       lastMessageAt: serverTimestamp(),
-      lastMessageSenderId: user.uid,
-      unreadBy: otherUid ? arrayUnion(otherUid) : [],
+      lastMessageSenderId: uid,
+      unreadBy: other ? arrayUnion(other) : [],
     });
   }
 
-  // Remove current user from unreadBy when they open a conversation
   async markRead(conversationId: string): Promise<void> {
-    const user = this.auth.currentUser;
-    if (!user) return;
-    const convoRef = doc(this.firestore, `conversations/${conversationId}`);
-    await updateDoc(convoRef, {
-      unreadBy: arrayRemove(user.uid),
-    }).catch(() => {});
+    const uid = this.auth.currentUser?.uid;
+    if (!uid) return;
+    await updateDoc(this.convoRef(conversationId), { unreadBy: arrayRemove(uid) }).catch(() => {});
   }
 }

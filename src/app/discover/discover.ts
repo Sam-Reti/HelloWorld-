@@ -4,7 +4,6 @@ import { RouterLink } from '@angular/router';
 import { Auth, authState } from '@angular/fire/auth';
 import { FollowService } from '../services/follow.service';
 import { firstValueFrom } from 'rxjs';
-import { tap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-discover',
@@ -17,16 +16,7 @@ export class Discover {
   private followService = inject(FollowService);
   private auth = inject(Auth);
 
-  users$ = this.followService.getAllUsers$().pipe(
-    tap((users) =>
-      console.log(
-        '[discover] users count:',
-        users.length,
-        'uids:',
-        users.map((u) => u.uid),
-      ),
-    ),
-  );
+  users$ = this.followService.getAllUsers$();
   followingIds$ = this.followService.getFollowingIds$();
   currentUid: string | null = null;
 

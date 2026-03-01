@@ -1,4 +1,5 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { PostService } from '../services/postservice';
 import { AsyncPipe, DatePipe } from '@angular/common';
@@ -19,7 +20,9 @@ import { Post } from '../services/postservice';
   templateUrl: './feed.html',
   styleUrl: './feed.css',
 })
-export class Feed implements OnInit, OnDestroy {
+export class Feed implements OnInit {
+  private destroyRef = inject(DestroyRef);
+
   renderMarkdown(text: string): string {
     const html = marked.parse(text ?? '') as string;
     return DOMPurify.sanitize(html);
@@ -56,6 +59,7 @@ export class Feed implements OnInit, OnDestroy {
           for (const u of users) if (u.avatarColor) colors[u.uid] = u.avatarColor;
           return colors;
         }),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((c) => {
         this.userColors = c;
@@ -70,7 +74,7 @@ export class Feed implements OnInit, OnDestroy {
     );
 
     // Load liked state from Firestore for each visible post
-    this.posts$.subscribe((posts) => {
+    this.posts$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((posts) => {
       for (const post of posts) {
         if (post.id && !this.likeChecked.has(post.id)) {
           this.likeChecked.add(post.id);
@@ -85,29 +89,26 @@ export class Feed implements OnInit, OnDestroy {
     });
 
     // Listen for scroll signals from notifications
-    this.scrollService.scrollToPost$.subscribe((postId) => {
-      if (postId) {
-        // Wait a bit for the DOM to render the posts
-        setTimeout(() => this.scrollToPost(postId), 100);
-      }
-    });
+    this.scrollService.scrollToPost$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((postId) => {
+        if (postId) {
+          // Wait a bit for the DOM to render the posts
+          setTimeout(() => this.scrollToPost(postId), 100);
+        }
+      });
   }
-
-  ngOnDestroy() {}
 
   isLiked(postId: string): boolean {
     return this.likedPostIds.has(postId);
   }
 
   async createPost() {
-    console.log('createPost clicked');
-
     try {
       await this.postService.createPost(this.text);
-      console.log('✅ Firestore write finished');
       this.text = '';
     } catch (e) {
-      console.error('❌ Firestore write failed:', e);
+      console.error('Post creation failed:', e);
     }
   }
   async delete(postId: string) {

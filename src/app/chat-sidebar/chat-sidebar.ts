@@ -1,4 +1,5 @@
 import { Component, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AsyncPipe } from '@angular/common';
 import { Auth } from '@angular/fire/auth';
 import { Observable, combineLatest, map } from 'rxjs';
@@ -38,8 +39,10 @@ export class ChatSidebar {
   private userColorsSnapshot: Record<string, string> = {};
 
   constructor() {
-    this.userColors$.subscribe((c) => (this.userColorsSnapshot = c));
-    this.presenceService.onlineUsers$.subscribe((s) => (this.onlineSnapshot = s));
+    this.userColors$.pipe(takeUntilDestroyed()).subscribe((c) => (this.userColorsSnapshot = c));
+    this.presenceService.onlineUsers$
+      .pipe(takeUntilDestroyed())
+      .subscribe((s) => (this.onlineSnapshot = s));
   }
 
   // For the "New Chat" picker

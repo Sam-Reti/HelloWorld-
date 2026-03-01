@@ -52,24 +52,60 @@ functions/         # Firebase Cloud Functions
 
 ## Engineering Rules
 
-1. **Prefer Interfaces Over Concrete Types** — Define contracts using interfaces/types before implementations. Depend on abstractions, not concrete classes. Avoid unnecessary coupling between components and services.
+1. **Design With Interfaces First**
+   - Define clear contracts using interfaces or types before building implementations.
+   - Depend on abstractions to keep components and services flexible.
+   - Embrace loose coupling for easier testing and reuse.
 
-2. **Single Responsibility Principle (SRP)** — Each function, class, and component must have one clear responsibility. Split logic when multiple concerns appear. Avoid multipurpose or ambiguous units.
+2. **Give Every Piece One Clear Purpose**
+   - Each function, class, and component should own one well-defined responsibility.
+   - When multiple concerns emerge, split them into focused units.
+   - Clarity of purpose makes code easier to read and maintain.
 
-3. **Pure Functions With Safe Defaults** — Favor deterministic, side-effect-free functions. Use default parameters instead of defensive branching. Avoid hidden state or implicit dependencies.
+3. **Write Pure Functions With Safe Defaults**
+   - Favor deterministic, side-effect-free functions for predictable behavior.
+   - Use default parameters to keep logic clean and straightforward.
+   - Let dependencies be explicit so the code is easy to follow.
 
-4. **File Size Limits** — No TypeScript/logic files over 300 lines. No HTML/template files over 100 lines. Refactor immediately when limits are approached.
+4. **Keep Files Lean and Focused**
+   - Aim for TypeScript/logic files under 300 lines.
+   - Aim for HTML/template files under 100 lines.
+   - Proactively refactor as files grow — smaller files are easier to navigate.
 
-5. **Loop Isolation** — Do not embed complex loops directly inside components. Move iteration logic into helper functions or child components. Avoid mixing loops with state mutation or rendering logic.
+5. **Isolate Loop Logic for Clarity**
+   - Move iteration logic into helper functions or child components.
+   - Keep loops focused on a single task for readability.
+   - Separate data transformation from rendering for cleaner templates.
 
-6. **Avoid Conditional Complexity** — Minimize if/else and switch statements. Prefer strategy patterns or polymorphism when behavior varies. Use conditionals only when they simplify clarity.
+6. **Simplify Conditional Logic**
+   - Favor strategy patterns or polymorphism when behavior varies by type.
+   - Use conditionals when they genuinely improve clarity.
+   - Simpler branching leads to more maintainable code.
 
-7. **Early Returns Required** — Exit immediately on invalid, empty, or trivial conditions. Avoid deep nesting. Keep the primary execution path obvious.
+7. **Return Early, Stay Flat**
+   - Exit immediately on invalid, empty, or trivial conditions.
+   - Keep the primary execution path obvious and easy to follow.
+   - Flat code is readable code.
 
-8. **No Conditional Wrapping of Large Blocks** — Do not wrap entire logic sections inside conditionals. Extract branching logic into functions. Prefer guard clauses.
+8. **Extract Branching Into Focused Functions**
+   - Use guard clauses to handle edge cases upfront.
+   - Move branching logic into well-named helper functions.
+   - Let the main flow of each function tell a clear story.
 
-9. **Eliminate Redundant Conditionals** — Avoid defensive checks for impossible states. Validate inputs at boundaries. Remove duplicated logical branches.
+9. **Trust Your Boundaries**
+   - Validate inputs at the edges of your system.
+   - Once validated, let the inner logic stay clean and confident.
+   - Consolidate duplicate checks into shared validation.
 
-10. **Prefer Async Pipe and Signals** — Use the Angular async pipe instead of manual subscriptions. Prefer signals for reactive state when appropriate. Avoid imperative subscription management unless strictly necessary.
+10. **Embrace Async Pipe and Signals**
+    - Use Angular's async pipe for clean, declarative template bindings.
+    - Use signals for reactive state to keep components responsive.
+    - Let Angular manage subscription lifecycles for you.
 
-11. **Prefer Modern Angular Control Flow** — Use `@for` instead of `*ngFor`. Use `@if` instead of `*ngIf`. Default to modern template syntax unless compatibility requires otherwise.
+11. **Use Modern Angular Control Flow**
+    - Use `@for` for iteration in templates.
+    - Use `@if` for conditional rendering.
+    - Modern template syntax is cleaner and more performant — default to it.
+
+12. **Audit After Every Task — Always**
+    - Audit After Every Task — Always
