@@ -19,7 +19,7 @@ export class User {
     const snap = await getDoc(userRef);
 
     if (!snap.exists()) {
-      const defaultName = user.email?.split('@')[0] || 'New User';
+      const defaultName = user.displayName || user.email?.split('@')[0] || 'New User';
       await setDoc(
         userRef,
         {

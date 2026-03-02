@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Auth } from '@angular/fire/auth';
 import {
   createUserWithEmailAndPassword,
@@ -12,6 +12,7 @@ import {
 import { BackgroundImage } from '../background-image/background-image';
 import { ExternalNav } from '../external-nav/external-nav';
 import { Firestore, doc, setDoc } from '@angular/fire/firestore';
+import { AuthService } from '../auth/auth.service';
 
 @Component({
   selector: 'app-signup',
@@ -30,6 +31,8 @@ export class SignupComponent {
   constructor(
     private auth: Auth,
     private firestore: Firestore,
+    private authService: AuthService,
+    private router: Router,
   ) {}
 
   async signup() {
@@ -69,6 +72,15 @@ export class SignupComponent {
       this.emailSent = true;
     } catch (error) {
       this.message = `Signup failed: ${error instanceof Error ? error.message : String(error)}`;
+    }
+  }
+
+  async signInWithGoogle() {
+    try {
+      await this.authService.signInWithGoogle();
+      this.router.navigateByUrl('/app-home');
+    } catch (error) {
+      this.message = `Google sign-in failed: ${error instanceof Error ? error.message : String(error)}`;
     }
   }
 

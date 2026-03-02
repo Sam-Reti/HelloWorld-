@@ -5,6 +5,7 @@ import { signInWithEmailAndPassword, signOut, sendEmailVerification } from 'fire
 import { Router } from '@angular/router';
 import { BackgroundImage } from '../background-image/background-image';
 import { ExternalNav } from '../external-nav/external-nav';
+import { AuthService } from '../auth/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -21,6 +22,7 @@ export class LoginComponent {
   constructor(
     private auth: Auth,
     private router: Router,
+    private authService: AuthService,
   ) {}
 
   async login() {
@@ -36,6 +38,15 @@ export class LoginComponent {
       this.router.navigateByUrl('/app-home');
     } catch (error) {
       this.message = `Login failed: ${error instanceof Error ? error.message : String(error)}`;
+    }
+  }
+
+  async signInWithGoogle() {
+    try {
+      await this.authService.signInWithGoogle();
+      this.router.navigateByUrl('/app-home');
+    } catch (error) {
+      this.message = `Google sign-in failed: ${error instanceof Error ? error.message : String(error)}`;
     }
   }
 

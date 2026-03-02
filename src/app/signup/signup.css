@@ -116,3 +116,43 @@
 .signupCard a:hover {
   color: #00ffcc;
 }
+
+.signupCard .divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 0.8rem;
+}
+
+.signupCard .divider::before,
+.signupCard .divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.signupCard .google-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 10px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.signupCard .google-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.signupCard .google-btn:active {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(1px);
+  box-shadow: none;
+}

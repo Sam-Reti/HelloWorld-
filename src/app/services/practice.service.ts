@@ -43,8 +43,8 @@ Difficulty guide:
 
 Requirements:
 - Code must be syntactically valid but have logical/semantic errors
-- No comments revealing the bug
-- The description field should explain what the code is supposed to do without giving away the answer
+- CRITICAL: Do NOT include any comments in the code. No inline comments, no block comments, no docstrings, no annotations — zero comments of any kind. The user must find the bugs themselves without any hints.
+- The description field should explain what the code is supposed to do without giving away the answer or hinting at where the bugs are
 
 Respond with ONLY valid JSON (no markdown fences), in this shape:
 {"code": "...", "description": "..."}`;
