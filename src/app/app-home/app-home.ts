@@ -23,7 +23,7 @@ import {
 } from '@angular/fire/firestore';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { collectionData } from '@angular/fire/firestore';
-import { Observable, Subject, of } from 'rxjs';
+import { Observable, Subject, of, firstValueFrom } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { AsyncPipe, SlicePipe } from '@angular/common';
 
@@ -187,16 +187,14 @@ export class AppHome implements OnInit {
   async markAllRead() {
     if (!this.currentUid || !this.notifications$) return;
 
-    // take one snapshot of current list
-    const sub = this.notifications$.subscribe(async (list) => {
-      sub.unsubscribe();
-
-      const unread = list.filter((n) => !n.read);
-      for (const n of unread) {
+    const list = await firstValueFrom(this.notifications$);
+    const unread = list.filter((n) => !n.read);
+    await Promise.all(
+      unread.map((n) => {
         const ref = doc(this.firestore, `users/${this.currentUid}/notifications/${n.id}`);
-        await updateDoc(ref, { read: true }).catch(() => {});
-      }
-    });
+        return updateDoc(ref, { read: true }).catch(() => {});
+      }),
+    );
   }
   onSearchInput() {
     this.searchSubject.next(this.searchTerm);

@@ -199,29 +199,23 @@ export class Feed implements OnInit {
 
   private scrollToPost(postId: string) {
     const element = document.getElementById(`post-${postId}`);
-    if (element) {
-      // Find the scrollable parent container (.center-scroll)
-      const scrollContainer = element.closest('.center-scroll') || window;
+    if (!element) return;
 
-      // Calculate the offset position relative to the scroll container
-      const elementTop = element.getBoundingClientRect().top;
-      const containerTop =
-        scrollContainer instanceof Window
-          ? 0
-          : (scrollContainer as HTMLElement).getBoundingClientRect().top;
+    const scrollContainer = element.closest('.center-scroll') || window;
+    const elementTop = element.getBoundingClientRect().top;
+    const containerTop =
+      scrollContainer instanceof Window
+        ? 0
+        : (scrollContainer as HTMLElement).getBoundingClientRect().top;
+    const scrollOffset = elementTop - containerTop - 250;
 
-      const scrollOffset = elementTop - containerTop - 250; // 250px offset to clear the sticky post box
-
-      // Scroll the container
-      if (scrollContainer instanceof Window) {
-        window.scrollBy({ top: scrollOffset, behavior: 'smooth' });
-      } else {
-        (scrollContainer as HTMLElement).scrollBy({ top: scrollOffset, behavior: 'smooth' });
-      }
-
-      // Add highlight effect
-      element.classList.add('highlight');
-      setTimeout(() => element.classList.remove('highlight'), 2000);
+    if (scrollContainer instanceof Window) {
+      window.scrollBy({ top: scrollOffset, behavior: 'smooth' });
+    } else {
+      (scrollContainer as HTMLElement).scrollBy({ top: scrollOffset, behavior: 'smooth' });
     }
+
+    element.classList.add('highlight');
+    setTimeout(() => element.classList.remove('highlight'), 2000);
   }
 }

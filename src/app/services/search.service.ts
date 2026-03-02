@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Firestore, collection, collectionData } from '@angular/fire/firestore';
 import { query, orderBy, limit } from 'firebase/firestore';
 import { Auth, authState } from '@angular/fire/auth';
-import { Observable, of, combineLatest, map, switchMap } from 'rxjs';
+import { Observable, of, combineLatest, map } from 'rxjs';
 import { PublicUser } from './follow.service';
 import { Post } from './postservice';
 
