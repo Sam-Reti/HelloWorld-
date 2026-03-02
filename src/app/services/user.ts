@@ -26,6 +26,8 @@ export class User {
           displayName: defaultName,
           bio: '',
           avatarColor: '#0ea5a4',
+          followerCount: 0,
+          followingCount: 0,
           createdAt: serverTimestamp(),
         },
         { merge: true },

@@ -63,6 +63,8 @@ export class SignupComponent {
         displayName,
         bio: '',
         email,
+        followerCount: 0,
+        followingCount: 0,
         createdAt: new Date(),
       });
 

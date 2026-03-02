@@ -12,8 +12,9 @@ service cloud.firestore {
 
     // Helper: check that a numeric field changed by exactly +1 or -1
     function changedByOne(field) {
-      return request.resource.data[field] == resource.data[field] + 1
-          || request.resource.data[field] == resource.data[field] - 1;
+      let current = resource.data.get(field, 0);
+      return request.resource.data[field] == current + 1
+          || request.resource.data[field] == current - 1;
     }
 
     // Posts
