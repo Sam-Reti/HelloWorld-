@@ -4,8 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { PostService } from '../services/postservice';
 import { AsyncPipe, DatePipe } from '@angular/common';
 import { CommonModule } from '@angular/common';
-import { marked } from 'marked';
-import DOMPurify from 'dompurify';
+import { MarkdownPipe } from '../pipes/markdown.pipe';
 import { Auth } from '@angular/fire/auth';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ScrollService } from '../services/scroll.service';
@@ -16,17 +15,13 @@ import { Post } from '../services/postservice';
 @Component({
   selector: 'app-feed',
   standalone: true,
-  imports: [FormsModule, DatePipe, AsyncPipe, CommonModule, RouterLink],
+  imports: [FormsModule, DatePipe, AsyncPipe, CommonModule, RouterLink, MarkdownPipe],
   templateUrl: './feed.html',
   styleUrl: './feed.css',
 })
 export class Feed implements OnInit {
   private destroyRef = inject(DestroyRef);
 
-  renderMarkdown(text: string): string {
-    const html = marked.parse(text ?? '') as string;
-    return DOMPurify.sanitize(html);
-  }
   text = '';
   posts$!: Observable<Post[]>;
   currentUid: string | null = null;

@@ -46,7 +46,7 @@
           </div>
         </div>
       } @else {
-        <div class="post-text" [innerHTML]="renderMarkdown(post.text)"></div>
+        <div class="post-text" [innerHTML]="post.text | markdown"></div>
       }
       <div class="post-actions">
         <button class="action" [class.liked]="isLiked(post.id!)" (click)="toggleLike(post.id!)">

@@ -18,7 +18,7 @@ import {
   arrayUnion,
   arrayRemove,
 } from 'firebase/firestore';
-import { Observable, of, switchMap } from 'rxjs';
+import { Observable, of, switchMap, shareReplay } from 'rxjs';
 
 export interface Conversation {
   id: string;
@@ -90,20 +90,23 @@ export class ChatService {
   }
 
   // Live stream of all conversations the current user is part of,
-  // newest activity first. collectionData() keeps this updated in real time.
+  // newest activity first. Shared so multiple components reuse one Firestore listener.
+  private conversations$ = authState(this.auth).pipe(
+    switchMap((user) => {
+      if (!user) return of([]);
+      const convoCol = collection(this.firestore, 'conversations');
+      const q = query(
+        convoCol,
+        where('participantIds', 'array-contains', user.uid),
+        orderBy('lastMessageAt', 'desc'),
+      );
+      return collectionData(q, { idField: 'id' }) as Observable<Conversation[]>;
+    }),
+    shareReplay(1),
+  );
+
   getConversations$(): Observable<Conversation[]> {
-    return authState(this.auth).pipe(
-      switchMap((user) => {
-        if (!user) return of([]);
-        const convoCol = collection(this.firestore, 'conversations');
-        const q = query(
-          convoCol,
-          where('participantIds', 'array-contains', user.uid),
-          orderBy('lastMessageAt', 'desc'),
-        );
-        return collectionData(q, { idField: 'id' }) as Observable<Conversation[]>;
-      }),
-    );
+    return this.conversations$;
   }
 
   // Live stream of messages in a single conversation, oldest first.

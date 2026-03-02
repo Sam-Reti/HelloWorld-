@@ -195,8 +195,10 @@
         </nav>
       </div>
       <div class="right-inline">
-        <app-chat-sidebar />
-        <app-practice-sidebar />
+        @if (isNarrow()) {
+          <app-chat-sidebar />
+          <app-practice-sidebar />
+        }
       </div>
     </aside>
 
@@ -207,8 +209,10 @@
     </section>
 
     <aside class="right">
-      <app-chat-sidebar />
-      <app-practice-sidebar />
+      @if (!isNarrow()) {
+        <app-chat-sidebar />
+        <app-practice-sidebar />
+      }
     </aside>
   </main>
 

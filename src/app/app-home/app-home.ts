@@ -6,6 +6,7 @@ import {
   ElementRef,
   ViewChild,
   inject,
+  signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Auth } from '@angular/fire/auth';
@@ -75,6 +76,13 @@ export class AppHome implements OnInit {
   notifOpen = false;
   menuOpen = false;
   currentUid: string | null = null;
+
+  isNarrow = signal(window.innerWidth <= 1100);
+
+  @HostListener('window:resize')
+  onWindowResize() {
+    this.isNarrow.set(window.innerWidth <= 1100);
+  }
 
   // Search
   searchTerm = '';

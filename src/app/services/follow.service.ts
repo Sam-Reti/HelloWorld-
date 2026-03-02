@@ -11,7 +11,7 @@ import {
 } from '@angular/fire/firestore';
 import { Auth, authState } from '@angular/fire/auth';
 import { increment, serverTimestamp } from 'firebase/firestore';
-import { Observable, of, switchMap, map } from 'rxjs';
+import { Observable, of, switchMap, map, shareReplay } from 'rxjs';
 
 export interface PublicUser {
   uid: string;
@@ -51,13 +51,16 @@ export class FollowService {
     return this.getFollowingIds$().pipe(map((ids) => ids.includes(targetUid)));
   }
 
+  private allUsers$ = authState(this.auth).pipe(
+    switchMap(() => {
+      const usersCol = collection(this.firestore, 'users');
+      return collectionData(usersCol, { idField: 'uid' }) as Observable<PublicUser[]>;
+    }),
+    shareReplay(1),
+  );
+
   getAllUsers$(): Observable<PublicUser[]> {
-    return authState(this.auth).pipe(
-      switchMap((user) => {
-        const usersCol = collection(this.firestore, 'users');
-        return collectionData(usersCol, { idField: 'uid' }) as Observable<PublicUser[]>;
-      }),
-    );
+    return this.allUsers$;
   }
 
   async follow(targetUid: string): Promise<void> {
