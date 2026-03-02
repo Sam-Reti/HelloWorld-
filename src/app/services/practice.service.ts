@@ -14,7 +14,11 @@ import {
 
 function parseJson<T>(raw: string): T {
   const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
-  return JSON.parse(cleaned) as T;
+  try {
+    return JSON.parse(cleaned) as T;
+  } catch {
+    throw new Error(`AI returned invalid JSON: ${cleaned.slice(0, 200)}`);
+  }
 }
 
 @Injectable({ providedIn: 'root' })

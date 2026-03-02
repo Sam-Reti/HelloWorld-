@@ -226,3 +226,9 @@ button:hover {
 .profile-card a:hover {
   background: var(--accent-hover);
 }
+
+.error-msg {
+  color: #ef4444;
+  font-size: 0.875rem;
+  margin: 0;
+}

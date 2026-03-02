@@ -59,6 +59,7 @@ export class Editprofile implements OnInit {
   location = '';
   avatarColor = AVATAR_COLORS[0];
   showEmail = false;
+  message = '';
 
   readonly LANGUAGES = LANGUAGES;
   readonly SKILL_LEVELS = SKILL_LEVELS;
@@ -103,6 +104,25 @@ export class Editprofile implements OnInit {
   }
 
   async saveProfile() {
+    this.message = '';
+
+    if (!this.displayName.trim()) {
+      this.message = 'Display name is required.';
+      return;
+    }
+    if (this.displayName.trim().length > 50) {
+      this.message = 'Display name must be 50 characters or less.';
+      return;
+    }
+    if (this.bio.trim().length > 500) {
+      this.message = 'Bio must be 500 characters or less.';
+      return;
+    }
+    if (this.role.trim().length > 100) {
+      this.message = 'Role must be 100 characters or less.';
+      return;
+    }
+
     const user = await firstValueFrom(authState(this.auth));
     if (!user) return;
 

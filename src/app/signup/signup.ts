@@ -63,6 +63,7 @@ export class SignupComponent {
         displayName,
         bio: '',
         email,
+        avatarColor: '#0ea5a4',
         followerCount: 0,
         followingCount: 0,
         createdAt: new Date(),
