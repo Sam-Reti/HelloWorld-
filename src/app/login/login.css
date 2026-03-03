@@ -74,6 +74,138 @@
   color: rgba(0, 255, 204, 0.7);
 }
 
+.loginCard .forgot-btn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: rgba(0, 255, 204, 0.5);
+  font-size: 0.8rem;
+  cursor: pointer;
+  text-align: right;
+  align-self: flex-end;
+  margin-top: -8px;
+}
+
+.loginCard .forgot-btn:hover {
+  background: transparent;
+  color: #00ffcc;
+  box-shadow: none;
+  transform: none;
+}
+
+.loginCard .forgot-btn:active {
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+.reset-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reset-modal {
+  background: rgba(10, 15, 25, 0.95);
+  border: 1px solid rgba(0, 255, 204, 0.25);
+  border-radius: 20px;
+  padding: 32px 28px;
+  width: 340px;
+  max-width: 90vw;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  color: #00ffcc;
+  text-align: center;
+}
+
+.reset-modal h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.reset-body {
+  margin: 0;
+  font-size: 0.88rem;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.5;
+}
+
+.reset-body strong {
+  color: #00ffcc;
+}
+
+.reset-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 10px 4px;
+  color: #00ffcc;
+  font-size: 1rem;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.reset-input:focus {
+  border-bottom-color: #00ffcc;
+}
+
+.reset-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.reset-error {
+  margin: 0;
+  font-size: 0.8rem;
+  color: rgba(255, 100, 100, 0.85);
+}
+
+.reset-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.reset-cancel {
+  flex: 1;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 10px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.9rem;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.reset-cancel:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.reset-submit {
+  flex: 1;
+  background: rgba(0, 255, 204, 0.12);
+  border: 1px solid rgba(0, 255, 204, 0.4);
+  padding: 10px;
+  color: #00ffcc;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+
+.reset-submit:hover {
+  background: rgba(0, 255, 204, 0.22);
+}
+
 .loginCard .resend-btn {
   background: transparent;
   border: none;

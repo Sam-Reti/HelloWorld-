@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Firestore, collection, addDoc } from '@angular/fire/firestore';
+import { Storage, ref, uploadBytes, getDownloadURL } from '@angular/fire/storage';
 import { Auth } from '@angular/fire/auth';
 import {
   query,
@@ -28,6 +29,7 @@ export type Post = {
   commentCount: number;
   authorDisplayName?: string | null;
   authorAvatarColor?: string | null;
+  imageUrl?: string | null;
   type?: 'practice';
   practiceLanguage?: string;
   practiceCategory?: string;
@@ -69,13 +71,14 @@ export type Comment = {
 export class PostService {
   private firestore = inject(Firestore);
   private auth = inject(Auth);
+  private storage = inject(Storage);
 
-  async createPost(text: string) {
+  async createPost(text: string, imageFile?: File | null) {
     const user = this.auth.currentUser;
     if (!user) throw new Error('Not authenticated');
 
     const clean = text.trim();
-    if (!clean) return;
+    if (!clean && !imageFile) return;
 
     const userRef = doc(this.firestore, `users/${user.uid}`);
     const snap = await getDoc(userRef);
@@ -83,8 +86,14 @@ export class PostService {
     const displayName = userData?.displayName ?? null;
     const avatarColor = userData?.avatarColor ?? null;
 
-    const postsRef = collection(this.firestore, 'posts');
+    let imageUrl: string | null = null;
+    if (imageFile) {
+      const storageRef = ref(this.storage, `post-images/${user.uid}/${Date.now()}_${imageFile.name}`);
+      await uploadBytes(storageRef, imageFile);
+      imageUrl = await getDownloadURL(storageRef);
+    }
 
+    const postsRef = collection(this.firestore, 'posts');
     await addDoc(postsRef, {
       text: clean,
       authorId: user.uid,
@@ -94,6 +103,7 @@ export class PostService {
       createdAt: serverTimestamp(),
       likeCount: 0,
       commentCount: 0,
+      ...(imageUrl ? { imageUrl } : {}),
     });
   }
 

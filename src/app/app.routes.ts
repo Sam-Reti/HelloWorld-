@@ -13,6 +13,7 @@ import { Discover } from './discover/discover';
 import { UserProfile } from './user-profile/user-profile';
 import { ChatInbox } from './chat-inbox/chat-inbox';
 import { Following } from './following/following';
+import { ResetPasswordComponent } from './reset-password/reset-password';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -48,5 +49,6 @@ export const routes: Routes = [
       },
     ],
   },
+  { path: 'reset-password', component: ResetPasswordComponent },
   { path: '**', redirectTo: 'home' },
 ];

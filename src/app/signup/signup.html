@@ -25,6 +25,22 @@
         placeholder="Password"
         (keydown.enter)="signup()"
       />
+      @if (password) {
+        <div class="pw-checks">
+          <div class="pw-check" [class.met]="passwordChecks.length">
+            {{ passwordChecks.length ? '✓' : '✗' }} 8+ characters
+          </div>
+          <div class="pw-check" [class.met]="passwordChecks.upper">
+            {{ passwordChecks.upper ? '✓' : '✗' }} Uppercase letter
+          </div>
+          <div class="pw-check" [class.met]="passwordChecks.lower">
+            {{ passwordChecks.lower ? '✓' : '✗' }} Lowercase letter
+          </div>
+          <div class="pw-check" [class.met]="passwordChecks.number">
+            {{ passwordChecks.number ? '✓' : '✗' }} Number
+          </div>
+        </div>
+      }
       <input
         [(ngModel)]="confirmPassword"
         type="password"

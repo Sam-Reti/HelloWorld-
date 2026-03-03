@@ -28,6 +28,21 @@ export class SignupComponent {
   message = '';
   emailSent = false;
 
+  get passwordChecks() {
+    const p = this.password;
+    return {
+      length: p.length >= 8,
+      upper: /[A-Z]/.test(p),
+      lower: /[a-z]/.test(p),
+      number: /[0-9]/.test(p),
+    };
+  }
+
+  get passwordValid() {
+    const c = this.passwordChecks;
+    return c.length && c.upper && c.lower && c.number;
+  }
+
   constructor(
     private auth: Auth,
     private firestore: Firestore,
@@ -45,6 +60,11 @@ export class SignupComponent {
 
     if (!email || !displayName || !password || !confirmPassword) {
       this.message = 'Please fill in all fields.';
+      return;
+    }
+
+    if (!this.passwordValid) {
+      this.message = 'Password does not meet the requirements below.';
       return;
     }
 

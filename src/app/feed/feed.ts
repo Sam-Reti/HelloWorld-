@@ -22,7 +22,8 @@ import { FollowService } from '../services/follow.service';
 import { map } from 'rxjs';
 import { Post } from '../services/postservice';
 import { PracticePostCardComponent } from '../practice/practice-post-card/practice-post-card';
-import { QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
+import { QueryDocumentSnapshot, DocumentData, getDoc, doc } from 'firebase/firestore';
+import { Firestore } from '@angular/fire/firestore';
 
 const PAGE_SIZE = 30;
 
@@ -43,6 +44,7 @@ const PAGE_SIZE = 30;
 })
 export class Feed implements OnInit, AfterViewInit {
   @ViewChild('scrollSentinel') private scrollSentinel!: ElementRef<HTMLElement>;
+  @ViewChild('imageInput') private imageInput!: ElementRef<HTMLInputElement>;
 
   private destroyRef = inject(DestroyRef);
   private observer?: IntersectionObserver;
@@ -51,8 +53,11 @@ export class Feed implements OnInit, AfterViewInit {
   posts = signal<Post[]>([]);
   loading = signal(false);
   hasMore = signal(true);
+  selectedImage = signal<File | null>(null);
+  imagePreview = signal<string | null>(null);
 
   currentUid: string | null = null;
+  isAdmin = signal(false);
   commentText: Record<string, string> = {};
   showComments: Record<string, boolean> = {};
   likedPostIds = new Set<string>();
@@ -69,9 +74,20 @@ export class Feed implements OnInit, AfterViewInit {
     private scrollService: ScrollService,
     private followService: FollowService,
     private cdr: ChangeDetectorRef,
+    private firestore: Firestore,
   ) {
     this.currentUid = this.auth.currentUser?.uid ?? null;
     this.destroyRef.onDestroy(() => this.observer?.disconnect());
+    this.loadAdminStatus();
+  }
+
+  private async loadAdminStatus() {
+    const uid = this.auth.currentUser?.uid;
+    if (!uid) return;
+    const snap = await getDoc(doc(this.firestore, `users/${uid}`));
+    if (snap.exists() && snap.data()?.['isAdmin'] === true) {
+      this.isAdmin.set(true);
+    }
   }
 
   ngOnInit() {
@@ -161,12 +177,34 @@ export class Feed implements OnInit, AfterViewInit {
 
   async createPost() {
     try {
-      await this.postService.createPost(this.text);
+      await this.postService.createPost(this.text, this.selectedImage());
       this.text = '';
+      this.clearImage();
       this.resetAndLoad();
     } catch (e) {
       console.error('Post creation failed:', e);
     }
+  }
+
+  onImageSelect(event: Event) {
+    const file = (event.target as HTMLInputElement).files?.[0] ?? null;
+    if (!file) return;
+    const prev = this.imagePreview();
+    if (prev) URL.revokeObjectURL(prev);
+    this.selectedImage.set(file);
+    this.imagePreview.set(URL.createObjectURL(file));
+  }
+
+  removeImage() {
+    this.clearImage();
+  }
+
+  private clearImage() {
+    const prev = this.imagePreview();
+    if (prev) URL.revokeObjectURL(prev);
+    this.selectedImage.set(null);
+    this.imagePreview.set(null);
+    if (this.imageInput?.nativeElement) this.imageInput.nativeElement.value = '';
   }
 
   async delete(postId: string) {
