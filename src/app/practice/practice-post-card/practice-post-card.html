@@ -1,0 +1,31 @@
+<div class="practice-card" (click)="showModal.set(true)">
+  <div class="card-header">
+    <div class="grade-badge" [style.background]="gradeColor(post.practiceGrade)">
+      {{ post.practiceGrade || '?' }}
+    </div>
+    <div class="score">{{ post.practiceScore ?? 0 }}<span class="score-denom">/100</span></div>
+    <div class="card-label">Practice Result</div>
+  </div>
+
+  <div class="meta-chips">
+    @if (post.practiceLanguage) {
+      <span class="chip">{{ post.practiceLanguage }}</span>
+    }
+    @if (post.practiceCategory) {
+      <span class="chip">{{ post.practiceCategory }}</span>
+    }
+    @if (post.practiceLevel) {
+      <span class="chip chip-level">{{ post.practiceLevel }}</span>
+    }
+  </div>
+
+  @if (post.practiceDescription) {
+    <p class="description-preview">{{ post.practiceDescription }}</p>
+  }
+
+  <div class="view-details">Click to view full details →</div>
+</div>
+
+@if (showModal()) {
+  <app-practice-result-modal [post]="post" (close)="showModal.set(false)" />
+}

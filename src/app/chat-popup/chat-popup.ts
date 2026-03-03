@@ -13,6 +13,7 @@ import { Auth } from '@angular/fire/auth';
 import { Observable, Subscription } from 'rxjs';
 import { ChatService, Message, Conversation } from '../services/chat.service';
 import { ChatPopupService } from '../services/chat-popup.service';
+import { VideoCallService } from '../video-call/video-call.service';
 import { PresenceService } from '../services/presence.service';
 import { Firestore, doc, getDoc } from '@angular/fire/firestore';
 
@@ -32,6 +33,7 @@ export class ChatPopup implements AfterViewChecked, OnDestroy {
   private firestore = inject(Firestore);
   private presenceService = inject(PresenceService);
   readonly popup = inject(ChatPopupService);
+  private videoCallService = inject(VideoCallService);
 
   currentUid = this.auth.currentUser?.uid ?? '';
   otherOnline = false;
@@ -138,6 +140,12 @@ export class ChatPopup implements AfterViewChecked, OnDestroy {
       event.preventDefault();
       this.send();
     }
+  }
+
+  initiateCall(): void {
+    const chat = this.popup.openChat();
+    if (!chat?.otherUid) return;
+    this.videoCallService.initiateCall(chat.otherUid, chat.name);
   }
 
   close(): void {

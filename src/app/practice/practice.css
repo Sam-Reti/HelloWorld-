@@ -155,13 +155,53 @@
   border-color: var(--text-muted);
 }
 
-.try-another-btn {
-  margin-bottom: 32px;
+.result-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.share-success {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #22c55e;
 }
 
 .generate-btn {
   align-self: flex-start;
   margin-top: 4px;
+}
+
+/* Scratch pad */
+.scratch-pad {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.scratch-pad-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.scratch-pad-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.scratch-pad-lang {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  opacity: 0.6;
 }
 
 /* Spinner */

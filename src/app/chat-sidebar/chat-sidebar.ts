@@ -89,7 +89,8 @@ export class ChatSidebar {
   openConversation(convo: Conversation): void {
     const name = this.getOtherName(convo);
     const color = this.getOtherColor(convo);
-    this.chatPopup.open({ conversationId: convo.id, name, color });
+    const otherUid = this.getOtherUid(convo);
+    this.chatPopup.open({ conversationId: convo.id, name, color, otherUid });
   }
 
   isUnread(convo: Conversation): boolean {
@@ -108,6 +109,7 @@ export class ChatSidebar {
       conversationId: id,
       name: user.displayName,
       color: user.avatarColor ?? null,
+      otherUid: user.uid,
     });
   }
 }

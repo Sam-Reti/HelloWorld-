@@ -17,7 +17,7 @@
         <div class="empty">No sessions yet</div>
       }
       @for (s of sessions; track s.createdAt) {
-        <div class="session-row">
+        <div class="session-row" (click)="selectedSession.set(s)">
           <div
             class="grade-badge"
             [style.background]="gradeColor(s.grade) + '22'"
@@ -35,3 +35,10 @@
     }
   </div>
 </div>
+
+@if (selectedSession()) {
+  <app-session-detail-modal
+    [session]="selectedSession()!"
+    (close)="selectedSession.set(null)"
+  />
+}

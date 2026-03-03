@@ -6,6 +6,9 @@ import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-ch
 import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
 import { provideFirestore, getFirestore } from '@angular/fire/firestore';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+// TODO: uncomment once @hiyve/* registry issue is resolved
+// import { provideHiyve } from '@hiyve/angular';
 import { environment } from '../environments/environment';
 
 export const appConfig: ApplicationConfig = {
@@ -20,5 +23,11 @@ export const appConfig: ApplicationConfig = {
     provideAuth(() => getAuth()),
     provideFirestore(() => getFirestore()),
     provideRouter(routes),
+    provideAnimationsAsync(),
+    // TODO: uncomment once @hiyve/* packages are installed
+    // provideHiyve({
+    //   apiKey: environment.hiyveApiKey,
+    //   apiSecret: environment.hiyveApiSecret,
+    // }),
   ],
 };

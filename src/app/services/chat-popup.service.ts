@@ -4,6 +4,7 @@ export interface OpenChat {
   conversationId: string;
   name: string;
   color: string | null;
+  otherUid: string;
 }
 
 // A tiny service whose only job is to hold which chat popup is open.

@@ -43,5 +43,6 @@ export interface PracticeSession {
   score: number;
   grade: string;
   feedback: string;
+  correctedCode?: string;
   createdAt: any;
 }

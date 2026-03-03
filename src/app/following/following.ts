@@ -48,6 +48,7 @@ export class Following {
       conversationId: id,
       name: user.displayName,
       color: user.avatarColor ?? null,
+      otherUid: user.uid,
     });
   }
 }

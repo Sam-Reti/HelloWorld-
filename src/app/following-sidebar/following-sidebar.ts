@@ -32,6 +32,7 @@ export class FollowingSidebar {
       conversationId: id,
       name: user.displayName,
       color: user.avatarColor ?? null,
+      otherUid: user.uid,
     });
   }
 

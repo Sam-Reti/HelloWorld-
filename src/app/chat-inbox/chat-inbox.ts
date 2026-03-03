@@ -71,6 +71,7 @@ export class ChatInbox {
       conversationId: convo.id,
       name: convo.participantNames?.[other] ?? 'Unknown',
       color: this.userColorsSnapshot[other] || (convo.participantColors?.[other] ?? null),
+      otherUid: other,
     });
   }
 }

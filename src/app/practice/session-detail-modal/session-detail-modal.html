@@ -1,0 +1,71 @@
+<div class="modal-overlay" (click)="onBackdropClick($event)">
+  <div class="modal-panel">
+    <button class="close-btn" (click)="close.emit()" aria-label="Close">✕</button>
+
+    <div class="modal-header">
+      <div class="grade-badge" [style.background]="gradeColor(session.grade)">
+        {{ session.grade }}
+      </div>
+      <div class="score-block">
+        <span class="score">{{ session.score }}</span>
+        <span class="score-denom">/100</span>
+      </div>
+      <div class="meta-chips">
+        <span class="chip">{{ session.language }}</span>
+        <span class="chip">{{ session.category }}</span>
+        <span class="chip chip-level">{{ session.level }}</span>
+      </div>
+    </div>
+
+    @if (session.challengeDescription) {
+      <section class="modal-section">
+        <h3 class="section-title">Challenge Description</h3>
+        <p class="section-text">{{ session.challengeDescription }}</p>
+      </section>
+    }
+
+    @if (session.challenge) {
+      <section class="modal-section">
+        <h3 class="section-title">Original Buggy Code</h3>
+        <pre class="code-block"><code>{{ session.challenge }}</code></pre>
+      </section>
+    }
+
+    @if (session.submission) {
+      <section class="modal-section">
+        <h3 class="section-title">Your Fix</h3>
+        <pre class="code-block"><code>{{ session.submission }}</code></pre>
+      </section>
+    }
+
+    @if (session.correctedCode) {
+      <section class="modal-section">
+        <h3 class="section-title">Corrected Solution</h3>
+        <pre class="code-block"><code>{{ session.correctedCode }}</code></pre>
+      </section>
+    }
+
+    @if (session.feedback) {
+      <section class="modal-section">
+        <h3 class="section-title">AI Feedback</h3>
+        <p class="section-text">{{ session.feedback }}</p>
+      </section>
+    }
+
+    <div class="modal-footer">
+      <div class="footer-date">
+        {{ (session.createdAt?.toDate ? session.createdAt.toDate() : session.createdAt) | date: 'medium' }}
+      </div>
+      <div class="footer-actions">
+        @if (!shared()) {
+          <button class="share-btn" (click)="shareToFeed()" [disabled]="sharing()">
+            {{ sharing() ? 'Sharing...' : 'Share to Feed' }}
+          </button>
+        } @else {
+          <span class="share-success">Posted to feed!</span>
+        }
+        <button class="close-footer-btn" (click)="close.emit()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>

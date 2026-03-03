@@ -15,7 +15,7 @@
     </div>
   </div>
 
-  @for (post of (posts$ | async) ?? []; track post.id) {
+  @for (post of posts(); track post.id) {
     <div class="post" [id]="'post-' + post.id">
       <div class="post-header">
         <div class="author">
@@ -35,18 +35,22 @@
         </div>
       </div>
 
-      @if (editingPostId === post.id) {
-        <div class="edit-post">
-          <textarea [(ngModel)]="editText" class="edit-textarea"></textarea>
-          <div class="edit-actions">
-            <button class="edit-save" (click)="saveEdit(post.id!)" [disabled]="!editText.trim()">
-              Save
-            </button>
-            <button class="edit-cancel" (click)="cancelEdit()">Cancel</button>
-          </div>
-        </div>
+      @if (post.type === 'practice') {
+        <app-practice-post-card [post]="post" />
       } @else {
-        <div class="post-text" [innerHTML]="post.text | markdown"></div>
+        @if (editingPostId === post.id) {
+          <div class="edit-post">
+            <textarea [(ngModel)]="editText" class="edit-textarea"></textarea>
+            <div class="edit-actions">
+              <button class="edit-save" (click)="saveEdit(post.id!)" [disabled]="!editText.trim()">
+                Save
+              </button>
+              <button class="edit-cancel" (click)="cancelEdit()">Cancel</button>
+            </div>
+          </div>
+        } @else {
+          <div class="post-text" [innerHTML]="post.text | markdown"></div>
+        }
       }
       <div class="post-actions">
         <button class="action" [class.liked]="isLiked(post.id!)" (click)="toggleLike(post.id!)">
@@ -58,7 +62,9 @@
         </button>
 
         @if (post.authorId === currentUid) {
-          <button class="action" type="button" (click)="startEdit(post)">Edit</button>
+          @if (post.type !== 'practice') {
+            <button class="action" type="button" (click)="startEdit(post)">Edit</button>
+          }
           <button class="action danger" type="button" (click)="delete(post.id!)">Delete</button>
         }
       </div>
@@ -97,10 +103,17 @@
       }
     </div>
   }
-  @if (((posts$ | async) ?? []).length === 0) {
+
+  @if (posts().length === 0 && !loading()) {
     <div class="empty-feed">
       <p>Your feed is empty.</p>
       <a routerLink="/app-home/discover">Find people to follow →</a>
     </div>
   }
+
+  @if (loading()) {
+    <div class="loading-more">Loading...</div>
+  }
+
+  <div #scrollSentinel class="scroll-sentinel"></div>
 </div>

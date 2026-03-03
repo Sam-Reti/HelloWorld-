@@ -1,0 +1,15 @@
+@if (videoCallService.incomingCall(); as call) {
+  <div class="incoming-banner">
+    <div class="caller-info">
+      <div class="caller-avatar">{{ call.callerName[0].toUpperCase() }}</div>
+      <div class="caller-text">
+        <div class="caller-name">{{ call.callerName }}</div>
+        <div class="caller-label">Incoming video call</div>
+      </div>
+    </div>
+    <div class="call-actions">
+      <button class="accept-btn" (click)="videoCallService.acceptCall(call)">Accept</button>
+      <button class="reject-btn" (click)="videoCallService.rejectCall(call)">Decline</button>
+    </div>
+  </div>
+}

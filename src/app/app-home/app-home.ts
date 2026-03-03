@@ -45,6 +45,9 @@ import { ChatService } from '../services/chat.service';
 import { PresenceService } from '../services/presence.service';
 import { ChatSidebar } from '../chat-sidebar/chat-sidebar';
 import { PracticeSidebar } from '../practice-sidebar/practice-sidebar';
+import { VideoCallService } from '../video-call/video-call.service';
+import { VideoCallOverlayComponent } from '../video-call/video-call-overlay/video-call-overlay';
+import { IncomingCallBannerComponent } from '../video-call/incoming-call-banner/incoming-call-banner';
 
 @Component({
   selector: 'app-app-home',
@@ -59,6 +62,8 @@ import { PracticeSidebar } from '../practice-sidebar/practice-sidebar';
     ChatPopup,
     ChatSidebar,
     PracticeSidebar,
+    VideoCallOverlayComponent,
+    IncomingCallBannerComponent,
   ],
   templateUrl: './app-home.html',
   styleUrl: './app-home.css',
@@ -106,8 +111,10 @@ export class AppHome implements OnInit {
     private chatService: ChatService,
     private presenceService: PresenceService,
     private cdr: ChangeDetectorRef,
+    private videoCallService: VideoCallService,
   ) {
     this.themeService.init();
+    this.videoCallService.listenForIncomingCalls();
     authState(this.auth)
       .pipe(takeUntilDestroyed())
       .subscribe(async (user) => {

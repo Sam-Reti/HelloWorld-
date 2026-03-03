@@ -1,7 +1,17 @@
 import { Injectable, inject } from '@angular/core';
 import { Firestore, collection, addDoc } from '@angular/fire/firestore';
 import { Auth } from '@angular/fire/auth';
-import { query, orderBy, where } from 'firebase/firestore';
+import {
+  query,
+  orderBy,
+  where,
+  getDocs,
+  startAfter,
+  limit,
+  QueryDocumentSnapshot,
+  DocumentData,
+  QueryConstraint,
+} from 'firebase/firestore';
 import { collectionData } from '@angular/fire/firestore';
 import { combineLatest, map, Observable, of } from 'rxjs';
 import { doc, updateDoc } from '@angular/fire/firestore';
@@ -18,6 +28,30 @@ export type Post = {
   commentCount: number;
   authorDisplayName?: string | null;
   authorAvatarColor?: string | null;
+  type?: 'practice';
+  practiceLanguage?: string;
+  practiceCategory?: string;
+  practiceLevel?: string;
+  practiceScore?: number;
+  practiceGrade?: string;
+  practiceFeedback?: string;
+  practiceChallenge?: string;
+  practiceDescription?: string;
+  practiceSubmission?: string;
+  practiceCorrectedCode?: string;
+};
+
+export type PracticeShareData = {
+  language: string;
+  category: string;
+  level: string;
+  score: number;
+  grade: string;
+  feedback: string;
+  challenge: string;
+  description: string;
+  submission: string;
+  correctedCode: string;
 };
 
 export type Comment = {
@@ -80,6 +114,42 @@ export class PostService {
   async deletePost(postId: string) {
     const postRef = doc(this.firestore, `posts/${postId}`);
     await deleteDoc(postRef);
+  }
+
+  async createPracticePost(session: PracticeShareData) {
+    const user = this.auth.currentUser;
+    if (!user) throw new Error('Not authenticated');
+
+    const userRef = doc(this.firestore, `users/${user.uid}`);
+    const snap = await getDoc(userRef);
+    const userData = snap.exists() ? (snap.data() as any) : null;
+    const displayName = userData?.displayName ?? null;
+    const avatarColor = userData?.avatarColor ?? null;
+
+    const summary = `Scored ${session.score}/100 (${session.grade}) · ${session.language} · ${session.category} · ${session.level}`;
+
+    const postsRef = collection(this.firestore, 'posts');
+    await addDoc(postsRef, {
+      text: summary,
+      type: 'practice',
+      authorId: user.uid,
+      authorName: user.email,
+      authorDisplayName: displayName,
+      authorAvatarColor: avatarColor,
+      createdAt: serverTimestamp(),
+      likeCount: 0,
+      commentCount: 0,
+      practiceLanguage: session.language,
+      practiceCategory: session.category,
+      practiceLevel: session.level,
+      practiceScore: session.score,
+      practiceGrade: session.grade,
+      practiceFeedback: session.feedback,
+      practiceChallenge: session.challenge,
+      practiceDescription: session.description,
+      practiceSubmission: session.submission,
+      practiceCorrectedCode: session.correctedCode,
+    });
   }
 
   async updatePost(postId: string, text: string) {
@@ -179,6 +249,57 @@ export class PostService {
         read: false,
       }).catch(() => {});
     }
+  }
+
+  async getPostsPage(
+    uids: string[],
+    pageSize = 30,
+    cursors: (QueryDocumentSnapshot<DocumentData> | null)[] = [],
+  ): Promise<{
+    posts: Post[];
+    cursors: (QueryDocumentSnapshot<DocumentData> | null)[];
+    hasMore: boolean;
+  }> {
+    if (!uids.length) return { posts: [], cursors: [], hasMore: false };
+
+    const chunks = this.chunkArray(uids, 30);
+    const postsRef = collection(this.firestore, 'posts');
+
+    const chunkResults = await Promise.all(
+      chunks.map(async (chunk, i) => {
+        const cursor = cursors[i] ?? null;
+        const constraints: QueryConstraint[] = [
+          where('authorId', 'in', chunk),
+          orderBy('createdAt', 'desc'),
+          limit(pageSize),
+        ];
+        if (cursor) constraints.push(startAfter(cursor));
+        const snap = await getDocs(query(postsRef, ...constraints));
+        return {
+          posts: snap.docs.map((d) => ({ id: d.id, ...d.data() } as Post)),
+          lastDoc: snap.docs[snap.docs.length - 1] ?? null,
+          hasMore: snap.docs.length === pageSize,
+        };
+      }),
+    );
+
+    const allPosts = chunkResults
+      .flatMap((r) => r.posts)
+      .map((p: any) => ({
+        ...p,
+        createdAt: p.createdAt?.toDate ? p.createdAt.toDate() : p.createdAt,
+      }))
+      .sort((a, b) => {
+        const aTime = a.createdAt instanceof Date ? a.createdAt.getTime() : 0;
+        const bTime = b.createdAt instanceof Date ? b.createdAt.getTime() : 0;
+        return bTime - aTime;
+      });
+
+    return {
+      posts: allPosts,
+      cursors: chunkResults.map((r) => r.lastDoc),
+      hasMore: chunkResults.some((r) => r.hasMore),
+    };
   }
 
   getPostsFromUsers(uids: string[]): Observable<Post[]> {

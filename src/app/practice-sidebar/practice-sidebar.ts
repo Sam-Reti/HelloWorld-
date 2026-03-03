@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { Auth } from '@angular/fire/auth';
 import { Firestore, collection, query, where, orderBy } from '@angular/fire/firestore';
@@ -6,17 +6,20 @@ import { collectionData } from '@angular/fire/firestore';
 import { Observable, map } from 'rxjs';
 import { PracticeSession } from '../practice/practice.models';
 import { RouterLink } from '@angular/router';
+import { SessionDetailModalComponent } from '../practice/session-detail-modal/session-detail-modal';
 
 @Component({
   selector: 'app-practice-sidebar',
   standalone: true,
-  imports: [AsyncPipe, RouterLink],
+  imports: [AsyncPipe, RouterLink, SessionDetailModalComponent],
   templateUrl: './practice-sidebar.html',
   styleUrl: './practice-sidebar.css',
 })
 export class PracticeSidebar {
   private auth = inject(Auth);
   private firestore = inject(Firestore);
+
+  selectedSession = signal<PracticeSession | null>(null);
 
   sessions$: Observable<PracticeSession[]> = this.getSessions();
 

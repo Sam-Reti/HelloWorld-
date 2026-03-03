@@ -428,6 +428,17 @@
   }
 }
 
+.scroll-sentinel {
+  height: 1px;
+}
+
+.loading-more {
+  text-align: center;
+  padding: 20px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
 /* Responsive scaling */
 @media (max-width: 820px) {
   .feed-wrapper {

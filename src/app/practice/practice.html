@@ -62,6 +62,16 @@
         Generate Challenge
       </button>
     </div>
+
+    <div class="scratch-pad">
+      <div class="scratch-pad-header">
+        <span class="scratch-pad-label">Scratch Pad</span>
+        <span class="scratch-pad-lang">{{ selectedLanguage() }}</span>
+      </div>
+      <div class="editor-wrapper">
+        <app-code-editor [language]="selectedLanguage()" [initialCode]="''" />
+      </div>
+    </div>
   }
 
   @if (state() === 'loading' || state() === 'grading') {
@@ -163,7 +173,20 @@
           </div>
         </div>
 
-        <button class="btn-primary try-another-btn" (click)="reset()">Try Another</button>
+        <div class="result-footer-actions">
+          <button class="btn-primary try-another-btn" (click)="reset()">Try Another</button>
+          @if (!shared()) {
+            <button
+              class="btn-secondary share-btn"
+              (click)="shareToFeed()"
+              [disabled]="sharing()"
+            >
+              {{ sharing() ? 'Sharing...' : 'Share to Feed' }}
+            </button>
+          } @else {
+            <p class="share-success">Posted to feed!</p>
+          }
+        </div>
       </div>
     }
   }

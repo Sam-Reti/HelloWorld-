@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { Auth } from '@angular/fire/auth';
 import { PracticeService } from '../services/practice.service';
+import { PostService } from '../services/postservice';
 import { CodeEditorComponent } from './code-editor/code-editor';
 import {
   PracticeLanguage,
@@ -42,6 +43,7 @@ const LEVELS: PracticeLevel[] = ['Easy', 'Medium', 'Hard'];
 })
 export class PracticeComponent {
   private practiceService = inject(PracticeService);
+  private postService = inject(PostService);
   private auth = inject(Auth);
 
   readonly languages = LANGUAGES;
@@ -58,6 +60,8 @@ export class PracticeComponent {
   gradeResult = signal<GradePayload | null>(null);
 
   feedbackTab = signal<'feedback' | 'question'>('feedback');
+  sharing = signal(false);
+  shared = signal(false);
 
   async generateChallenge() {
     this.errorMessage.set('');
@@ -109,6 +113,7 @@ export class PracticeComponent {
           score: grade.score,
           grade: grade.grade,
           feedback: grade.feedback,
+          correctedCode: grade.correctedCode,
         });
       }
 
@@ -126,12 +131,41 @@ export class PracticeComponent {
     this.state.set('selecting');
   }
 
+  async shareToFeed() {
+    const gr = this.gradeResult();
+    const ch = this.challenge();
+    if (!gr || !ch) return;
+
+    this.sharing.set(true);
+    try {
+      await this.postService.createPracticePost({
+        language: this.selectedLanguage(),
+        category: this.selectedCategory(),
+        level: this.selectedLevel(),
+        score: gr.score,
+        grade: gr.grade,
+        feedback: gr.feedback,
+        challenge: ch.code,
+        description: ch.description,
+        submission: this.submission(),
+        correctedCode: gr.correctedCode,
+      });
+      this.shared.set(true);
+    } catch (err: any) {
+      this.errorMessage.set(err?.message ?? 'Failed to share. Please try again.');
+    } finally {
+      this.sharing.set(false);
+    }
+  }
+
   reset() {
     this.challenge.set(null);
     this.submission.set('');
     this.gradeResult.set(null);
     this.errorMessage.set('');
     this.feedbackTab.set('feedback');
+    this.sharing.set(false);
+    this.shared.set(false);
     this.state.set('selecting');
   }
 

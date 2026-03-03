@@ -1,0 +1,70 @@
+<div class="modal-overlay" (click)="onBackdropClick($event)">
+  <div class="modal-panel">
+    <button class="close-btn" (click)="close.emit()" aria-label="Close">✕</button>
+
+    <div class="modal-header">
+      <div class="grade-badge" [style.background]="gradeColor(post.practiceGrade)">
+        {{ post.practiceGrade || '?' }}
+      </div>
+      <div class="score-block">
+        <span class="score">{{ post.practiceScore ?? 0 }}</span>
+        <span class="score-denom">/100</span>
+      </div>
+      <div class="meta-chips">
+        @if (post.practiceLanguage) {
+          <span class="chip">{{ post.practiceLanguage }}</span>
+        }
+        @if (post.practiceCategory) {
+          <span class="chip">{{ post.practiceCategory }}</span>
+        }
+        @if (post.practiceLevel) {
+          <span class="chip chip-level">{{ post.practiceLevel }}</span>
+        }
+      </div>
+    </div>
+
+    @if (post.practiceDescription) {
+      <section class="modal-section">
+        <h3 class="section-title">Challenge Description</h3>
+        <p class="section-text">{{ post.practiceDescription }}</p>
+      </section>
+    }
+
+    @if (post.practiceChallenge) {
+      <section class="modal-section">
+        <h3 class="section-title">Original Buggy Code</h3>
+        <pre class="code-block"><code>{{ post.practiceChallenge }}</code></pre>
+      </section>
+    }
+
+    @if (post.practiceSubmission) {
+      <section class="modal-section">
+        <h3 class="section-title">User's Fix</h3>
+        <pre class="code-block"><code>{{ post.practiceSubmission }}</code></pre>
+      </section>
+    }
+
+    @if (post.practiceCorrectedCode) {
+      <section class="modal-section">
+        <h3 class="section-title">Corrected Solution</h3>
+        <pre class="code-block"><code>{{ post.practiceCorrectedCode }}</code></pre>
+      </section>
+    }
+
+    @if (post.practiceFeedback) {
+      <section class="modal-section">
+        <h3 class="section-title">AI Feedback</h3>
+        <p class="section-text">{{ post.practiceFeedback }}</p>
+      </section>
+    }
+
+    <div class="modal-footer">
+      <div class="footer-meta">
+        <span>{{ post.authorDisplayName || post.authorName || 'Anonymous' }}</span>
+        <span class="footer-dot">·</span>
+        <span>{{ (post.createdAt?.toDate ? post.createdAt.toDate() : post.createdAt) | date: 'medium' }}</span>
+      </div>
+      <button class="close-footer-btn" (click)="close.emit()">Close</button>
+    </div>
+  </div>
+</div>

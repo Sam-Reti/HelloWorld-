@@ -1,0 +1,32 @@
+@if (videoCallService.activeCall(); as call) {
+  <div class="call-overlay">
+    <!-- TODO: replace placeholder with Hiyve components once SDK is installed
+    @if (videoCallService.isInRoom$ | async) {
+      <hiyve-video-grid
+        [localUserName]="'Me'"
+        [layout]="'grid'"
+        [showNames]="true"
+        [colors]="{ background: '#0a0a14' }"
+      />
+      <hiyve-control-bar
+        [showAudioToggle]="true"
+        [showVideoToggle]="true"
+        [showSettings]="true"
+        [showLeaveButton]="true"
+        (leave)="videoCallService.endCall()"
+      />
+    } @else { -->
+
+    <div class="call-connecting">
+      <div class="connecting-avatar">
+        {{ call.calleeName[0].toUpperCase() }}
+      </div>
+      <p class="connecting-name">{{ call.calleeName }}</p>
+      <p class="connecting-label">Calling...</p>
+      <div class="connecting-spinner"></div>
+      <button class="cancel-btn" (click)="videoCallService.endCall()">Cancel</button>
+    </div>
+
+    <!-- TODO: } (closing else block) -->
+  </div>
+}

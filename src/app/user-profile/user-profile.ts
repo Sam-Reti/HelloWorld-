@@ -66,6 +66,7 @@ export class UserProfile implements OnInit {
       conversationId: id,
       name: this.profile.displayName,
       color: this.profile.avatarColor ?? null,
+      otherUid: this.profile.uid,
     });
   }
 

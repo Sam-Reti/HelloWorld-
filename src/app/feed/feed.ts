@@ -1,4 +1,14 @@
-import { Component, OnInit, ChangeDetectorRef, DestroyRef, inject } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  AfterViewInit,
+  ChangeDetectorRef,
+  DestroyRef,
+  ElementRef,
+  ViewChild,
+  inject,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { PostService } from '../services/postservice';
@@ -9,28 +19,47 @@ import { Auth } from '@angular/fire/auth';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ScrollService } from '../services/scroll.service';
 import { FollowService } from '../services/follow.service';
-import { switchMap, of, Observable, map } from 'rxjs';
+import { map } from 'rxjs';
 import { Post } from '../services/postservice';
+import { PracticePostCardComponent } from '../practice/practice-post-card/practice-post-card';
+import { QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
+
+const PAGE_SIZE = 30;
 
 @Component({
   selector: 'app-feed',
   standalone: true,
-  imports: [FormsModule, DatePipe, AsyncPipe, CommonModule, RouterLink, MarkdownPipe],
+  imports: [
+    FormsModule,
+    DatePipe,
+    AsyncPipe,
+    CommonModule,
+    RouterLink,
+    MarkdownPipe,
+    PracticePostCardComponent,
+  ],
   templateUrl: './feed.html',
   styleUrl: './feed.css',
 })
-export class Feed implements OnInit {
+export class Feed implements OnInit, AfterViewInit {
+  @ViewChild('scrollSentinel') private scrollSentinel!: ElementRef<HTMLElement>;
+
   private destroyRef = inject(DestroyRef);
+  private observer?: IntersectionObserver;
 
   text = '';
-  posts$!: Observable<Post[]>;
+  posts = signal<Post[]>([]);
+  loading = signal(false);
+  hasMore = signal(true);
+
   currentUid: string | null = null;
   commentText: Record<string, string> = {};
   showComments: Record<string, boolean> = {};
   likedPostIds = new Set<string>();
   private likeChecked = new Set<string>();
+  private currentUids: string[] = [];
+  private cursors: (QueryDocumentSnapshot<DocumentData> | null)[] = [];
 
-  // Live map of uid → current avatarColor
   userColors: Record<string, string> = {};
 
   constructor(
@@ -42,10 +71,10 @@ export class Feed implements OnInit {
     private cdr: ChangeDetectorRef,
   ) {
     this.currentUid = this.auth.currentUser?.uid ?? null;
+    this.destroyRef.onDestroy(() => this.observer?.disconnect());
   }
 
   ngOnInit() {
-    // Keep a live map of uid → avatarColor
     this.followService
       .getAllUsers$()
       .pipe(
@@ -61,37 +90,69 @@ export class Feed implements OnInit {
         this.cdr.markForCheck();
       });
 
-    this.posts$ = this.followService.getFollowingIds$().pipe(
-      switchMap((ids) => {
-        const feedUids = this.currentUid ? [...ids, this.currentUid] : ids;
-        return feedUids.length ? this.postService.getPostsFromUsers(feedUids) : of([]);
-      }),
-    );
+    this.followService
+      .getFollowingIds$()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(async (ids) => {
+        this.currentUids = this.currentUid ? [...ids, this.currentUid] : [...ids];
+        this.resetAndLoad();
+      });
 
-    // Load liked state from Firestore for each visible post
-    this.posts$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((posts) => {
-      for (const post of posts) {
-        if (post.id && !this.likeChecked.has(post.id)) {
-          this.likeChecked.add(post.id);
-          this.postService.hasLiked(post.id).then((liked) => {
-            if (liked) {
-              this.likedPostIds = new Set([...this.likedPostIds, post.id!]);
-            }
-            this.cdr.markForCheck();
-          });
-        }
-      }
-    });
-
-    // Listen for scroll signals from notifications
     this.scrollService.scrollToPost$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((postId) => {
-        if (postId) {
-          // Wait a bit for the DOM to render the posts
-          setTimeout(() => this.scrollToPost(postId), 100);
-        }
+        if (postId) setTimeout(() => this.scrollToPost(postId), 100);
       });
+  }
+
+  ngAfterViewInit() {
+    this.observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !this.loading() && this.hasMore()) {
+          this.loadPage();
+        }
+      },
+      { threshold: 0.1 },
+    );
+    this.observer.observe(this.scrollSentinel.nativeElement);
+  }
+
+  private resetAndLoad() {
+    this.cursors = [];
+    this.posts.set([]);
+    this.hasMore.set(true);
+    this.likeChecked.clear();
+    this.loadPage();
+  }
+
+  private async loadPage() {
+    if (this.loading() || !this.currentUids.length) return;
+    this.loading.set(true);
+    try {
+      const result = await this.postService.getPostsPage(
+        this.currentUids,
+        PAGE_SIZE,
+        this.cursors,
+      );
+      this.posts.update((prev) => [...prev, ...result.posts]);
+      this.cursors = result.cursors;
+      this.hasMore.set(result.hasMore);
+      this.checkLikes(result.posts);
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  private checkLikes(posts: Post[]) {
+    for (const post of posts) {
+      if (post.id && !this.likeChecked.has(post.id)) {
+        this.likeChecked.add(post.id);
+        this.postService.hasLiked(post.id).then((liked) => {
+          if (liked) this.likedPostIds = new Set([...this.likedPostIds, post.id!]);
+          this.cdr.markForCheck();
+        });
+      }
+    }
   }
 
   isLiked(postId: string): boolean {
@@ -102,15 +163,17 @@ export class Feed implements OnInit {
     try {
       await this.postService.createPost(this.text);
       this.text = '';
+      this.resetAndLoad();
     } catch (e) {
       console.error('Post creation failed:', e);
     }
   }
+
   async delete(postId: string) {
     await this.postService.deletePost(postId);
+    this.posts.update((prev) => prev.filter((p) => p.id !== postId));
   }
 
-  // Edit post
   editingPostId: string | null = null;
   editText = '';
 
@@ -129,6 +192,9 @@ export class Feed implements OnInit {
     if (!trimmed) return;
     try {
       await this.postService.updatePost(postId, trimmed);
+      this.posts.update((prev) =>
+        prev.map((p) => (p.id === postId ? { ...p, text: trimmed } : p)),
+      );
       this.editingPostId = null;
       this.editText = '';
     } catch (e) {
@@ -137,7 +203,6 @@ export class Feed implements OnInit {
   }
 
   async toggleLike(id: string) {
-    // Optimistically toggle
     const wasLiked = this.likedPostIds.has(id);
     const next = new Set(this.likedPostIds);
     wasLiked ? next.delete(id) : next.add(id);
@@ -146,7 +211,6 @@ export class Feed implements OnInit {
     try {
       await this.postService.toggleLike(id);
     } catch {
-      // Revert on failure
       const revert = new Set(this.likedPostIds);
       wasLiked ? revert.add(id) : revert.delete(id);
       this.likedPostIds = revert;
@@ -160,14 +224,10 @@ export class Feed implements OnInit {
   async submitComment(postId: string) {
     const text = (this.commentText[postId] ?? '').trim();
     if (!text) return;
-
-    // clear immediately for UX
     this.commentText[postId] = '';
-
     try {
       await this.postService.addComment(postId, text);
     } catch (e) {
-      // restore on failure so user doesn't lose it
       this.commentText[postId] = text;
       throw e;
     }
