@@ -144,12 +144,10 @@ export class AppHome implements OnInit {
       });
   }
   async logout() {
-    try {
-      await signOut(this.auth);
-      this.router.navigateByUrl('/login');
-    } catch (err) {
-      console.error('Logout failed', err);
-    }
+    this.videoCallService.stopListening();
+    await this.router.navigateByUrl('/home'); // destroy all child subscriptions first
+    await signOut(this.auth);
+    this.router.navigateByUrl('/login');
   }
 
   getInitials(value: string | null | undefined): string {

@@ -14,6 +14,8 @@
       (keydown.enter)="login()"
     />
 
+    <button class="forgot-btn" type="button" (click)="openResetModal()">Forgot Password?</button>
+
     <button (click)="login()">Login</button>
 
     <div class="divider"><span>or</span></div>
@@ -35,3 +37,27 @@
     <button class="resend-btn" (click)="resendVerification()">Resend verification email</button>
   </div>
 </div>
+
+@if (showResetModal) {
+  <div class="reset-overlay" (click)="closeResetModal()">
+    <div class="reset-modal" (click)="$event.stopPropagation()">
+      <h3>Reset Password</h3>
+      <p class="reset-body">Enter your email and we'll send you a reset link.</p>
+      <input
+        class="reset-input"
+        [(ngModel)]="resetEmail"
+        type="email"
+        placeholder="Your email address"
+        (keydown.enter)="submitReset()"
+        autofocus
+      />
+      @if (resetError) {
+        <p class="reset-error">{{ resetError }}</p>
+      }
+      <div class="reset-actions">
+        <button class="reset-cancel" type="button" (click)="closeResetModal()">Cancel</button>
+        <button class="reset-submit" type="button" (click)="submitReset()">Send Reset Link</button>
+      </div>
+    </div>
+  </div>
+}

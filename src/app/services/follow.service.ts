@@ -52,7 +52,8 @@ export class FollowService {
   }
 
   private allUsers$ = authState(this.auth).pipe(
-    switchMap(() => {
+    switchMap((user) => {
+      if (!user) return of([] as PublicUser[]);
       const usersCol = collection(this.firestore, 'users');
       return collectionData(usersCol, { idField: 'uid' }) as Observable<PublicUser[]>;
     }),

@@ -3,7 +3,7 @@ import { Firestore, collection, collectionData } from '@angular/fire/firestore';
 import { query, orderBy, limit } from 'firebase/firestore';
 import { Auth, authState } from '@angular/fire/auth';
 import { Observable, of, combineLatest, map } from 'rxjs';
-import { PublicUser } from './follow.service';
+import { FollowService, PublicUser } from './follow.service';
 import { Post } from './postservice';
 
 export interface SearchResults {
@@ -15,6 +15,7 @@ export interface SearchResults {
 export class SearchService {
   private firestore = inject(Firestore);
   private auth = inject(Auth);
+  private followService = inject(FollowService);
 
   /**
    * Client-side search: loads recent users & posts, filters by term.
@@ -25,8 +26,8 @@ export class SearchService {
     const t = term.toLowerCase().trim();
     if (!t) return of({ people: [], posts: [] });
 
-    return combineLatest([this.getUsers$(), this.getRecentPosts$()]).pipe(
-      map(([users, posts]) => {
+    return combineLatest([this.getUsers$(), this.getRecentPosts$(), this.followService.getFollowingIds$()]).pipe(
+      map(([users, posts, followingIds]) => {
         const people = users
           .filter(
             (u) =>
@@ -37,6 +38,7 @@ export class SearchService {
           .slice(0, 5);
 
         const matchedPosts = posts
+          .filter((p) => followingIds.includes(p.authorId!))
           .filter(
             (p) =>
               p.text?.toLowerCase().includes(t) ||

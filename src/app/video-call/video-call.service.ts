@@ -45,6 +45,7 @@ export class VideoCallService {
 
   private listenerStarted = false;
   private callWatcher?: Subscription;
+  private incomingCallsSub?: Subscription;
 
   /** Call once from AppHome to watch for incoming calls app-wide. */
   listenForIncomingCalls(): void {
@@ -60,7 +61,7 @@ export class VideoCallService {
       where('status', '==', 'ringing'),
     );
 
-    (collectionData(q, { idField: 'id' }) as Observable<CallDoc[]>)
+    this.incomingCallsSub = (collectionData(q, { idField: 'id' }) as Observable<CallDoc[]>)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((calls) => {
         // Don't surface incoming call while already in a call
@@ -68,6 +69,16 @@ export class VideoCallService {
           this.incomingCall.set(calls[0] ?? null);
         }
       });
+  }
+
+  stopListening(): void {
+    this.incomingCallsSub?.unsubscribe();
+    this.incomingCallsSub = undefined;
+    this.callWatcher?.unsubscribe();
+    this.callWatcher = undefined;
+    this.listenerStarted = false;
+    this.activeCall.set(null);
+    this.incomingCall.set(null);
   }
 
   async initiateCall(otherUid: string, otherName: string): Promise<void> {

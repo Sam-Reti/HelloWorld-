@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Auth } from '@angular/fire/auth';
-import { signInWithEmailAndPassword, signOut, sendEmailVerification } from 'firebase/auth';
+import { signInWithEmailAndPassword, signOut, sendEmailVerification, sendPasswordResetEmail } from 'firebase/auth';
 import { Router } from '@angular/router';
 import { BackgroundImage } from '../background-image/background-image';
 import { ExternalNav } from '../external-nav/external-nav';
@@ -18,6 +18,9 @@ export class LoginComponent {
   email = '';
   password = '';
   message = '';
+  showResetModal = false;
+  resetEmail = '';
+  resetError = '';
 
   constructor(
     private auth: Auth,
@@ -48,6 +51,31 @@ export class LoginComponent {
     } catch (error) {
       this.message = `Google sign-in failed: ${error instanceof Error ? error.message : String(error)}`;
     }
+  }
+
+  openResetModal() {
+    this.resetEmail = '';
+    this.resetError = '';
+    this.showResetModal = true;
+  }
+
+  closeResetModal() {
+    this.showResetModal = false;
+  }
+
+  submitReset() {
+    this.resetError = '';
+    const email = this.resetEmail.trim();
+    if (!email) {
+      this.resetError = 'Please enter your email address.';
+      return;
+    }
+    sendPasswordResetEmail(this.auth, email, {
+      url: `${window.location.origin}/reset-password`,
+      handleCodeInApp: false,
+    }).catch(() => {});
+    this.showResetModal = false;
+    this.message = `Reset link sent to ${email}. Check your inbox.`;
   }
 
   async resendVerification() {

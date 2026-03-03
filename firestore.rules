@@ -17,6 +17,11 @@ service cloud.firestore {
           || request.resource.data[field] == current - 1;
     }
 
+    function isAdmin() {
+      return isAuth()
+          && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isAdmin', false) == true;
+    }
+
     // Posts
     match /posts/{postId} {
       allow read: if isAuth();
@@ -37,7 +42,7 @@ service cloud.firestore {
           )
         )
       );
-      allow delete: if isAuth() && isOwner(resource.data.authorId);
+      allow delete: if isAuth() && (isOwner(resource.data.authorId) || isAdmin());
 
       match /likes/{likeId} {
         allow read: if isAuth();
@@ -74,9 +79,16 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isAuth();
       allow create: if isAuth() && isOwner(userId);
-      // Owner can update anything; others can ONLY change followerCount by ±1
+      // Owner can update anything except isAdmin (only an existing admin can grant admin);
+      // others can ONLY change followerCount by ±1
       allow update: if isAuth() && (
-        isOwner(userId) ||
+        (
+          isOwner(userId)
+          && (
+            !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isAdmin'])
+            || isAdmin()
+          )
+        ) ||
         (
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followerCount'])
           && changedByOne('followerCount')
@@ -111,7 +123,7 @@ service cloud.firestore {
         return request.auth.uid == resource.data.callerId
             || request.auth.uid == resource.data.calleeId;
       }
-      allow read: if isAuth() && isParticipant();
+      allow read: if isAuth() && (resource == null || isParticipant());
       allow create: if isAuth()
         && request.resource.data.callerId == request.auth.uid
         && request.resource.data.status == 'ringing';
@@ -122,7 +134,7 @@ service cloud.firestore {
 
     // Practice sessions — private per user, immutable after creation
     match /practiceSessions/{sessionId} {
-      allow read: if isAuth() && resource.data.uid == request.auth.uid;
+      allow read: if isAuth() && (resource == null || resource.data.uid == request.auth.uid);
       allow create: if isAuth()
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.score is number

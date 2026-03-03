@@ -2,7 +2,7 @@ import { Injectable, inject, OnDestroy } from '@angular/core';
 import { Firestore, collection, collectionData, doc, updateDoc } from '@angular/fire/firestore';
 import { Auth, authState } from '@angular/fire/auth';
 import { serverTimestamp } from 'firebase/firestore';
-import { Observable, map, of, switchMap, interval, Subscription } from 'rxjs';
+import { Observable, map, of, switchMap, interval, Subscription, shareReplay } from 'rxjs';
 
 const HEARTBEAT_MS = 60_000; // update every 60 s
 const ONLINE_THRESHOLD_MS = 2 * 60_000; // consider online if seen in last 2 min
@@ -40,21 +40,27 @@ export class PresenceService implements OnDestroy {
   }
 
   private getOnlineUsers$(): Observable<Set<string>> {
-    const usersCol = collection(this.firestore, 'users');
-    return collectionData(usersCol, { idField: 'uid' }).pipe(
-      map((users) => {
-        const now = Date.now();
-        const online = new Set<string>();
-        for (const u of users) {
-          const ts = (u as any).lastSeen;
-          if (!ts) continue;
-          const millis = ts.toDate ? ts.toDate().getTime() : ts;
-          if (now - millis < ONLINE_THRESHOLD_MS) {
-            online.add((u as any).uid);
-          }
-        }
-        return online;
+    return authState(this.auth).pipe(
+      switchMap((user) => {
+        if (!user) return of(new Set<string>());
+        const usersCol = collection(this.firestore, 'users');
+        return collectionData(usersCol, { idField: 'uid' }).pipe(
+          map((users) => {
+            const now = Date.now();
+            const online = new Set<string>();
+            for (const u of users) {
+              const ts = (u as any).lastSeen;
+              if (!ts) continue;
+              const millis = ts.toDate ? ts.toDate().getTime() : ts;
+              if (now - millis < ONLINE_THRESHOLD_MS) {
+                online.add((u as any).uid);
+              }
+            }
+            return online;
+          }),
+        );
       }),
+      shareReplay(1),
     );
   }
 
