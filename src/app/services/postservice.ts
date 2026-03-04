@@ -30,7 +30,9 @@ export type Post = {
   authorDisplayName?: string | null;
   authorAvatarColor?: string | null;
   imageUrl?: string | null;
-  type?: 'practice';
+  type?: 'practice' | 'code';
+  codeLanguage?: string;
+  codeContent?: string;
   practiceLanguage?: string;
   practiceCategory?: string;
   practiceLevel?: string;
@@ -73,12 +75,12 @@ export class PostService {
   private auth = inject(Auth);
   private storage = inject(Storage);
 
-  async createPost(text: string, imageFile?: File | null) {
+  async createPost(text: string, imageFile?: File | null): Promise<string> {
     const user = this.auth.currentUser;
     if (!user) throw new Error('Not authenticated');
 
     const clean = text.trim();
-    if (!clean && !imageFile) return;
+    if (!clean && !imageFile) throw new Error('Post must have text or an image');
 
     const userRef = doc(this.firestore, `users/${user.uid}`);
     const snap = await getDoc(userRef);
@@ -94,7 +96,7 @@ export class PostService {
     }
 
     const postsRef = collection(this.firestore, 'posts');
-    await addDoc(postsRef, {
+    const docRef = await addDoc(postsRef, {
       text: clean,
       authorId: user.uid,
       authorName: user.email,
@@ -105,6 +107,7 @@ export class PostService {
       commentCount: 0,
       ...(imageUrl ? { imageUrl } : {}),
     });
+    return docRef.id;
   }
 
   getPosts() {
@@ -126,7 +129,7 @@ export class PostService {
     await deleteDoc(postRef);
   }
 
-  async createPracticePost(session: PracticeShareData) {
+  async createPracticePost(session: PracticeShareData, caption = ''): Promise<string> {
     const user = this.auth.currentUser;
     if (!user) throw new Error('Not authenticated');
 
@@ -136,11 +139,9 @@ export class PostService {
     const displayName = userData?.displayName ?? null;
     const avatarColor = userData?.avatarColor ?? null;
 
-    const summary = `Scored ${session.score}/100 (${session.grade}) · ${session.language} · ${session.category} · ${session.level}`;
-
     const postsRef = collection(this.firestore, 'posts');
-    await addDoc(postsRef, {
-      text: summary,
+    const docRef = await addDoc(postsRef, {
+      text: caption,
       type: 'practice',
       authorId: user.uid,
       authorName: user.email,
@@ -160,15 +161,41 @@ export class PostService {
       practiceSubmission: session.submission,
       practiceCorrectedCode: session.correctedCode,
     });
+    return docRef.id;
+  }
+
+  async createCodePost(code: string, language: string, caption = ''): Promise<string> {
+    const user = this.auth.currentUser;
+    if (!user) throw new Error('Not authenticated');
+
+    const userRef = doc(this.firestore, `users/${user.uid}`);
+    const snap = await getDoc(userRef);
+    const userData = snap.exists() ? (snap.data() as any) : null;
+    const displayName = userData?.displayName ?? null;
+    const avatarColor = userData?.avatarColor ?? null;
+
+    const postsRef = collection(this.firestore, 'posts');
+    const docRef = await addDoc(postsRef, {
+      text: caption,
+      type: 'code',
+      codeLanguage: language,
+      codeContent: code,
+      authorId: user.uid,
+      authorName: user.email,
+      authorDisplayName: displayName,
+      authorAvatarColor: avatarColor,
+      createdAt: serverTimestamp(),
+      likeCount: 0,
+      commentCount: 0,
+    });
+    return docRef.id;
   }
 
   async updatePost(postId: string, text: string) {
     const user = this.auth.currentUser;
     if (!user) throw new Error('Not authenticated');
-    const clean = text.trim();
-    if (!clean) return;
     const postRef = doc(this.firestore, `posts/${postId}`);
-    await updateDoc(postRef, { text: clean });
+    await updateDoc(postRef, { text: text.trim() });
   }
 
   async toggleLike(postId: string) {

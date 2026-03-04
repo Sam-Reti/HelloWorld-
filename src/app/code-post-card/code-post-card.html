@@ -1,0 +1,14 @@
+<div class="code-post-card">
+  <div class="code-post-header">
+    <span class="lang-chip">{{ post.codeLanguage }}</span>
+    <span class="scratch-label">Scratch Pad</span>
+  </div>
+  @if (post.text) {
+    <p class="code-post-caption">{{ post.text }}</p>
+  }
+  @defer {
+    <div class="editor-wrapper">
+      <app-code-editor [language]="language" [initialCode]="post.codeContent || ''" [readonly]="true" />
+    </div>
+  }
+</div>

@@ -20,8 +20,12 @@ export const appConfig: ApplicationConfig = {
     provideAnimationsAsync(),
     // TODO: uncomment once @hiyve/* packages are installed
     // provideHiyve({
-    //   apiKey: environment.hiyveApiKey,
-    //   apiSecret: environment.hiyveApiSecret,
+    //   generateRoomToken: async () => {
+    //     const res = await fetch('/api/generate-room-token', { method: 'POST' });
+    //     if (!res.ok) throw new Error('Failed to generate room token');
+    //     return (await res.json()).roomToken;
+    //   },
+    //   localVideoElementId: 'local-video',
     // }),
   ],
 };

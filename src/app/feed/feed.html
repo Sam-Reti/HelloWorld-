@@ -54,24 +54,28 @@
         </div>
       </div>
 
-      @if (post.type === 'practice') {
-        <app-practice-post-card [post]="post" />
-      } @else {
-        @if (editingPostId === post.id) {
-          <div class="edit-post">
-            <textarea [(ngModel)]="editText" class="edit-textarea"></textarea>
-            <div class="edit-actions">
-              <button class="edit-save" (click)="saveEdit(post.id!)" [disabled]="!editText.trim()">
-                Save
-              </button>
-              <button class="edit-cancel" (click)="cancelEdit()">Cancel</button>
-            </div>
+      @if (editingPostId === post.id) {
+        <div class="edit-post">
+          <textarea [(ngModel)]="editText" class="edit-textarea"></textarea>
+          <div class="edit-actions">
+            <button class="edit-save" (click)="saveEdit(post.id!)" [disabled]="post.type !== 'practice' && post.type !== 'code' && !editText.trim()">
+              Save
+            </button>
+            <button class="edit-cancel" (click)="cancelEdit()">Cancel</button>
           </div>
-        } @else {
-          <div class="post-text" [innerHTML]="post.text | markdown"></div>
-          @if (post.imageUrl) {
-            <img class="post-image" [src]="post.imageUrl" alt="Post image" loading="lazy" />
-          }
+        </div>
+      }
+      @if (post.type === 'practice') {
+        @if (post.text && editingPostId !== post.id) {
+          <div class="post-text">{{ post.text }}</div>
+        }
+        <app-practice-post-card [post]="post" />
+      } @else if (post.type === 'code') {
+        <app-code-post-card [post]="post" />
+      } @else if (editingPostId !== post.id) {
+        <div class="post-text" [innerHTML]="post.text | markdown"></div>
+        @if (post.imageUrl) {
+          <img class="post-image" [src]="post.imageUrl" alt="Post image" loading="lazy" />
         }
       }
       <div class="post-actions">
@@ -84,9 +88,7 @@
         </button>
 
         @if (post.authorId === currentUid) {
-          @if (post.type !== 'practice') {
-            <button class="action" type="button" (click)="startEdit(post)">Edit</button>
-          }
+          <button class="action" type="button" (click)="startEdit(post)">Edit</button>
         }
         @if (post.authorId === currentUid || isAdmin()) {
           <button class="action danger" type="button" (click)="delete(post.id!)">Delete</button>

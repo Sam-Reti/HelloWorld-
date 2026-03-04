@@ -67,10 +67,39 @@
       <div class="scratch-pad-header">
         <span class="scratch-pad-label">Scratch Pad</span>
         <span class="scratch-pad-lang">{{ selectedLanguage() }}</span>
+        @if (showCompose() !== 'scratch') {
+          <button
+            class="btn-share-scratch"
+            [disabled]="sharingScratch() || !scratchCode().trim()"
+            (click)="openCompose('scratch')"
+          >
+            {{ sharingScratch() ? 'Sharing...' : 'Share to Feed' }}
+          </button>
+        }
       </div>
       <div class="editor-wrapper">
-        <app-code-editor [language]="selectedLanguage()" [initialCode]="''" />
+        <app-code-editor
+          [language]="selectedLanguage()"
+          [initialCode]="''"
+          (codeChange)="scratchCode.set($event)"
+        />
       </div>
+      @if (showCompose() === 'scratch') {
+        <div class="compose-box">
+          <textarea
+            class="compose-textarea"
+            [ngModel]="captionText()" (ngModelChange)="captionText.set($event)"
+            placeholder="Add a comment... (optional)"
+            rows="3"
+          ></textarea>
+          <div class="compose-actions">
+            <button class="btn-secondary" (click)="cancelCompose()">Cancel</button>
+            <button class="btn-primary" (click)="shareScratchPad()" [disabled]="sharingScratch()">
+              {{ sharingScratch() ? 'Posting...' : 'Post to Feed' }}
+            </button>
+          </div>
+        </div>
+      }
     </div>
   }
 
@@ -173,20 +202,34 @@
           </div>
         </div>
 
-        <div class="result-footer-actions">
-          <button class="btn-primary try-another-btn" (click)="reset()">Try Another</button>
-          @if (!shared()) {
-            <button
-              class="btn-secondary share-btn"
-              (click)="shareToFeed()"
-              [disabled]="sharing()"
-            >
-              {{ sharing() ? 'Sharing...' : 'Share to Feed' }}
-            </button>
-          } @else {
-            <p class="share-success">Posted to feed!</p>
-          }
-        </div>
+        @if (showCompose() === 'practice') {
+          <div class="compose-box">
+            <textarea
+              class="compose-textarea"
+              [ngModel]="captionText()" (ngModelChange)="captionText.set($event)"
+              placeholder="Add a comment... (optional)"
+              rows="3"
+              autofocus
+            ></textarea>
+            <div class="compose-actions">
+              <button class="btn-secondary" (click)="cancelCompose()">Cancel</button>
+              <button class="btn-primary" (click)="shareToFeed()" [disabled]="sharing()">
+                {{ sharing() ? 'Posting...' : 'Post to Feed' }}
+              </button>
+            </div>
+          </div>
+        } @else {
+          <div class="result-footer-actions">
+            <button class="btn-primary try-another-btn" (click)="reset()">Try Another</button>
+            @if (!shared()) {
+              <button class="btn-secondary share-btn" (click)="openCompose('practice')">
+                Share to Feed
+              </button>
+            } @else {
+              <p class="share-success">Posted to feed!</p>
+            }
+          </div>
+        }
       </div>
     }
   }

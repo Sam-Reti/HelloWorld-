@@ -9,8 +9,7 @@
 
   @for (convo of convos; track convo.id) {
     @let other = otherUid(convo.participantIds);
-    @let name = convo.participantNames[other] ?? 'Unknown';
-    @let color = convo.participantColors[other] ?? null;
+    @let name = convo.participantNames[other] || 'Unknown';
 
     <button class="convo-card" (click)="open(convo)">
       <div class="convo-avatar-wrap">

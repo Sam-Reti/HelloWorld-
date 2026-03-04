@@ -22,6 +22,7 @@ import { FollowService } from '../services/follow.service';
 import { map } from 'rxjs';
 import { Post } from '../services/postservice';
 import { PracticePostCardComponent } from '../practice/practice-post-card/practice-post-card';
+import { CodePostCardComponent } from '../code-post-card/code-post-card';
 import { QueryDocumentSnapshot, DocumentData, getDoc, doc } from 'firebase/firestore';
 import { Firestore } from '@angular/fire/firestore';
 
@@ -38,6 +39,7 @@ const PAGE_SIZE = 30;
     RouterLink,
     MarkdownPipe,
     PracticePostCardComponent,
+    CodePostCardComponent,
   ],
   templateUrl: './feed.html',
   styleUrl: './feed.css',
@@ -119,6 +121,10 @@ export class Feed implements OnInit, AfterViewInit {
       .subscribe((postId) => {
         if (postId) setTimeout(() => this.scrollToPost(postId), 100);
       });
+
+    this.scrollService.refresh$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.resetAndLoad());
   }
 
   ngAfterViewInit() {
@@ -213,27 +219,32 @@ export class Feed implements OnInit, AfterViewInit {
   }
 
   editingPostId: string | null = null;
+  editingPostType: string | undefined = undefined;
   editText = '';
 
   startEdit(post: Post) {
     this.editingPostId = post.id!;
+    this.editingPostType = post.type;
     this.editText = post.text;
   }
 
   cancelEdit() {
     this.editingPostId = null;
+    this.editingPostType = undefined;
     this.editText = '';
   }
 
   async saveEdit(postId: string) {
     const trimmed = this.editText.trim();
-    if (!trimmed) return;
+    const requiresText = this.editingPostType !== 'practice' && this.editingPostType !== 'code';
+    if (requiresText && !trimmed) return;
     try {
       await this.postService.updatePost(postId, trimmed);
       this.posts.update((prev) =>
         prev.map((p) => (p.id === postId ? { ...p, text: trimmed } : p)),
       );
       this.editingPostId = null;
+      this.editingPostType = undefined;
       this.editText = '';
     } catch (e) {
       console.error('Edit failed:', e);
@@ -242,9 +253,15 @@ export class Feed implements OnInit, AfterViewInit {
 
   async toggleLike(id: string) {
     const wasLiked = this.likedPostIds.has(id);
+    const delta = wasLiked ? -1 : 1;
+
     const next = new Set(this.likedPostIds);
     wasLiked ? next.delete(id) : next.add(id);
     this.likedPostIds = next;
+
+    this.posts.update((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, likeCount: (p.likeCount || 0) + delta } : p)),
+    );
 
     try {
       await this.postService.toggleLike(id);
@@ -252,6 +269,9 @@ export class Feed implements OnInit, AfterViewInit {
       const revert = new Set(this.likedPostIds);
       wasLiked ? revert.add(id) : revert.delete(id);
       this.likedPostIds = revert;
+      this.posts.update((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, likeCount: (p.likeCount || 0) - delta } : p)),
+      );
     }
   }
 

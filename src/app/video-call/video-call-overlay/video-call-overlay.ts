@@ -1,5 +1,4 @@
 import { Component, inject } from '@angular/core';
-import { AsyncPipe } from '@angular/common';
 import { VideoCallService } from '../video-call.service';
 
 // TODO: uncomment once @hiyve/* packages are installed
@@ -9,7 +8,6 @@ import { VideoCallService } from '../video-call.service';
   selector: 'app-video-call-overlay',
   standalone: true,
   imports: [
-    AsyncPipe,
     // TODO: VideoGridComponent, ControlBarComponent,
   ],
   templateUrl: './video-call-overlay.html',

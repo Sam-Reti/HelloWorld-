@@ -52,17 +52,34 @@
       </section>
     }
 
+    @if (showCompose()) {
+      <div class="compose-box">
+        <textarea
+          class="compose-textarea"
+          [ngModel]="captionText()"
+          (ngModelChange)="captionText.set($event)"
+          placeholder="Add a comment... (optional)"
+          rows="3"
+          autofocus
+        ></textarea>
+        <div class="compose-actions">
+          <button class="close-footer-btn" (click)="cancelCompose()">Cancel</button>
+          <button class="share-btn" (click)="shareToFeed()" [disabled]="sharing()">
+            {{ sharing() ? 'Posting...' : 'Post to Feed' }}
+          </button>
+        </div>
+      </div>
+    }
+
     <div class="modal-footer">
       <div class="footer-date">
         {{ (session.createdAt?.toDate ? session.createdAt.toDate() : session.createdAt) | date: 'medium' }}
       </div>
       <div class="footer-actions">
-        @if (!shared()) {
-          <button class="share-btn" (click)="shareToFeed()" [disabled]="sharing()">
-            {{ sharing() ? 'Sharing...' : 'Share to Feed' }}
+        @if (!showCompose()) {
+          <button class="share-btn" (click)="openCompose()" [disabled]="sharing()">
+            {{ sharing() ? 'Posting...' : 'Share to Feed' }}
           </button>
-        } @else {
-          <span class="share-success">Posted to feed!</span>
         }
         <button class="close-footer-btn" (click)="close.emit()">Close</button>
       </div>

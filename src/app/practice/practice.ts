@@ -1,7 +1,10 @@
 import { Component, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { Auth } from '@angular/fire/auth';
 import { PracticeService } from '../services/practice.service';
 import { PostService } from '../services/postservice';
+import { ScrollService } from '../services/scroll.service';
 import { CodeEditorComponent } from './code-editor/code-editor';
 import {
   PracticeLanguage,
@@ -37,7 +40,7 @@ const LEVELS: PracticeLevel[] = ['Easy', 'Medium', 'Hard'];
 @Component({
   selector: 'app-practice',
   standalone: true,
-  imports: [CodeEditorComponent],
+  imports: [CodeEditorComponent, FormsModule],
   templateUrl: './practice.html',
   styleUrl: './practice.css',
 })
@@ -45,6 +48,8 @@ export class PracticeComponent {
   private practiceService = inject(PracticeService);
   private postService = inject(PostService);
   private auth = inject(Auth);
+  private router = inject(Router);
+  private scrollService = inject(ScrollService);
 
   readonly languages = LANGUAGES;
   readonly categories = CATEGORIES;
@@ -62,6 +67,11 @@ export class PracticeComponent {
   feedbackTab = signal<'feedback' | 'question'>('feedback');
   sharing = signal(false);
   shared = signal(false);
+
+  scratchCode = signal('');
+  sharingScratch = signal(false);
+  showCompose = signal<'practice' | 'scratch' | null>(null);
+  captionText = signal('');
 
   async generateChallenge() {
     this.errorMessage.set('');
@@ -131,30 +141,70 @@ export class PracticeComponent {
     this.state.set('selecting');
   }
 
+  openCompose(type: 'practice' | 'scratch') {
+    this.captionText.set('');
+    this.showCompose.set(type);
+  }
+
+  cancelCompose() {
+    this.showCompose.set(null);
+    this.captionText.set('');
+  }
+
   async shareToFeed() {
     const gr = this.gradeResult();
     const ch = this.challenge();
     if (!gr || !ch) return;
 
     this.sharing.set(true);
+    this.showCompose.set(null);
     try {
-      await this.postService.createPracticePost({
-        language: this.selectedLanguage(),
-        category: this.selectedCategory(),
-        level: this.selectedLevel(),
-        score: gr.score,
-        grade: gr.grade,
-        feedback: gr.feedback,
-        challenge: ch.code,
-        description: ch.description,
-        submission: this.submission(),
-        correctedCode: gr.correctedCode,
-      });
-      this.shared.set(true);
+      const postId = await this.postService.createPracticePost(
+        {
+          language: this.selectedLanguage(),
+          category: this.selectedCategory(),
+          level: this.selectedLevel(),
+          score: gr.score,
+          grade: gr.grade,
+          feedback: gr.feedback,
+          challenge: ch.code,
+          description: ch.description,
+          submission: this.submission(),
+          correctedCode: gr.correctedCode,
+        },
+        this.captionText().trim(),
+      );
+      await this.router.navigateByUrl('/app-home/feed');
+      setTimeout(() => {
+        this.scrollService.refresh();
+        this.scrollService.scrollToPost(postId);
+      }, 300);
     } catch (err: any) {
       this.errorMessage.set(err?.message ?? 'Failed to share. Please try again.');
-    } finally {
       this.sharing.set(false);
+    }
+  }
+
+  async shareScratchPad() {
+    const code = this.scratchCode().trim();
+    if (!code) return;
+
+    this.sharingScratch.set(true);
+    this.showCompose.set(null);
+    try {
+      const postId = await this.postService.createCodePost(
+        code,
+        this.selectedLanguage(),
+        this.captionText().trim(),
+      );
+      await this.router.navigateByUrl('/app-home/feed');
+      setTimeout(() => {
+        this.scrollService.refresh();
+        this.scrollService.scrollToPost(postId);
+      }, 300);
+    } catch (err: any) {
+      this.errorMessage.set(err?.message ?? 'Failed to share. Please try again.');
+      this.sharingScratch.set(false);
     }
   }
 
