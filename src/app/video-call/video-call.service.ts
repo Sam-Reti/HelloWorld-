@@ -5,7 +5,7 @@ import {
   Firestore,
   collection,
   doc,
-  addDoc,
+  setDoc,
   deleteDoc,
   updateDoc,
   query,
@@ -15,8 +15,7 @@ import { collectionData, docData } from '@angular/fire/firestore';
 import { serverTimestamp } from 'firebase/firestore';
 import { Observable, Subscription } from 'rxjs';
 
-// TODO: uncomment once @hiyve/* packages are installed
-// import { ConnectionService, RoomService } from '@hiyve/angular';
+import { HiyveService, RoomService } from '@hiyve/angular';
 
 export interface CallDoc {
   id: string;
@@ -29,23 +28,38 @@ export interface CallDoc {
   createdAt: any;
 }
 
+interface HiyveJoinToken {
+  joinToken: string;
+  roomRegion: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class VideoCallService {
-  // TODO: inject once @hiyve/* packages are installed
-  // private connection = inject(ConnectionService);
-  // private room = inject(RoomService);
-  // readonly isInRoom$ = this.room.isInRoom$;
+  private hiyve = inject(HiyveService);
+  private room = inject(RoomService);
+  readonly isInRoom$ = this.room.isInRoom$;
 
   private auth = inject(Auth);
   private firestore = inject(Firestore);
   private destroyRef = inject(DestroyRef);
 
   readonly activeCall = signal<CallDoc | null>(null);
+
+  get localUserName(): string {
+    const u = this.auth.currentUser;
+    return u?.displayName || u?.email || 'Me';
+  }
   readonly incomingCall = signal<CallDoc | null>(null);
 
   private listenerStarted = false;
   private callWatcher?: Subscription;
   private incomingCallsSub?: Subscription;
+
+  constructor() {
+    this.room.isInRoom$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((v) => {
+      console.log('[VideoCall] isInRoom$ changed:', v);
+    });
+  }
 
   /** Call once from AppHome to watch for incoming calls app-wide. */
   listenForIncomingCalls(): void {
@@ -86,18 +100,16 @@ export class VideoCallService {
     if (!user) return;
 
     const callsRef = collection(this.firestore, 'calls');
-    const docRef = await addDoc(callsRef, {
+    const docRef = doc(callsRef);
+    await setDoc(docRef, {
       callerId: user.uid,
       callerName: user.displayName || user.email || 'Unknown',
       calleeId: otherUid,
       calleeName: otherName,
-      roomName: '',
+      roomName: docRef.id,
       status: 'ringing',
       createdAt: serverTimestamp(),
     });
-
-    // Use the Firestore doc ID as the room name so both sides share it
-    await updateDoc(docRef, { roomName: docRef.id });
 
     const call: CallDoc = {
       id: docRef.id,
@@ -113,8 +125,21 @@ export class VideoCallService {
     this.activeCall.set(call);
     this.watchCallDoc(docRef.id);
 
-    // TODO: uncomment once @hiyve/* packages are installed
-    // await this.connection.joinRoom(docRef.id, user.uid);
+    // Wait one render cycle so Angular mounts hiyve-video-grid first
+    await new Promise((r) => setTimeout(r, 100));
+
+    console.log('[VideoCall] initiateCall: creating room', docRef.id);
+    console.log('[VideoCall] local-video el:', document.getElementById('local-video'));
+    try {
+      const displayName = user.displayName || user.email || user.uid;
+      await this.hiyve.createRoom(docRef.id, displayName);
+      console.log('[VideoCall] initiateCall: createRoom resolved');
+      // Warm up device enumeration now that getUserMedia has run, so the settings
+      // panel shows labeled devices on its very first open.
+      navigator.mediaDevices.enumerateDevices().catch(() => {});
+    } catch (err) {
+      console.error('[VideoCall] initiateCall: createRoom failed', err);
+    }
   }
 
   async acceptCall(call: CallDoc): Promise<void> {
@@ -126,8 +151,31 @@ export class VideoCallService {
     this.incomingCall.set(null);
     this.watchCallDoc(call.id);
 
-    // TODO: uncomment once @hiyve/* packages are installed
-    // await this.connection.joinRoom(call.roomName, user.uid);
+    // Wait one render cycle so Angular mounts hiyve-video-grid first
+    await new Promise((r) => setTimeout(r, 100));
+
+    console.log('[VideoCall] acceptCall: getting join token for room', call.roomName);
+    const displayName = user.displayName || user.email || user.uid;
+    const token = await this.fetchJoinToken(call.roomName, displayName);
+    if (!token) {
+      console.error('[VideoCall] acceptCall: failed to get join token');
+      return;
+    }
+
+    console.log('[VideoCall] acceptCall: joining with token, region', token.roomRegion);
+    console.log('[VideoCall] local-video el:', document.getElementById('local-video'));
+    try {
+      await this.hiyve.joinRoomWithToken({
+        joinToken: token.joinToken,
+        roomRegion: token.roomRegion,
+        userId: displayName,
+      });
+      console.log('[VideoCall] acceptCall: joinRoomWithToken resolved');
+      // Warm up device enumeration now that getUserMedia has run.
+      navigator.mediaDevices.enumerateDevices().catch(() => {});
+    } catch (err) {
+      console.error('[VideoCall] acceptCall: joinRoomWithToken failed', err);
+    }
   }
 
   async rejectCall(call: CallDoc): Promise<void> {
@@ -137,15 +185,37 @@ export class VideoCallService {
 
   async endCall(): Promise<void> {
     const call = this.activeCall();
+    this.callWatcher?.unsubscribe();
+    this.callWatcher = undefined;
+    // Setting activeCall to null unmounts hiyve-video-grid synchronously.
+    // The SDK's ngOnDestroy on that component calls leaveRoom() — let it own that.
+    this.activeCall.set(null);
     if (call) {
       await deleteDoc(doc(this.firestore, `calls/${call.id}`)).catch(() => {});
     }
-    this.callWatcher?.unsubscribe();
-    this.callWatcher = undefined;
-    this.activeCall.set(null);
+  }
 
-    // TODO: uncomment once @hiyve/* packages are installed
-    // this.connection.leaveRoom();
+  /** Get a join token from Hiyve's signaling server for the given room. */
+  private async fetchJoinToken(roomName: string, userId: string): Promise<HiyveJoinToken | null> {
+    try {
+      const res = await fetch('/api/create-join-token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roomName, userId }),
+      });
+      console.log('[VideoCall] fetchJoinToken: status', res.status);
+      if (!res.ok) {
+        const text = await res.text();
+        console.error('[VideoCall] fetchJoinToken: error body', text);
+        return null;
+      }
+      const data = await res.json();
+      console.log('[VideoCall] fetchJoinToken: roomRegion', data.roomRegion);
+      return { joinToken: data.joinToken, roomRegion: data.roomRegion };
+    } catch (err) {
+      console.error('[VideoCall] fetchJoinToken: failed', err);
+      return null;
+    }
   }
 
   /** Watch the call doc so we detect if the other side hangs up or rejects. */
@@ -155,9 +225,9 @@ export class VideoCallService {
       docData(doc(this.firestore, `calls/${callId}`)) as Observable<CallDoc | undefined>
     ).subscribe((data) => {
       if (!data && this.activeCall()) {
-        // Other side deleted the doc — they hung up or rejected
+        // Other side deleted the doc — they hung up or rejected.
+        // Setting activeCall to null unmounts hiyve-video-grid, which calls leaveRoom via ngOnDestroy.
         this.activeCall.set(null);
-        // TODO: this.connection.leaveRoom();
       }
     });
   }

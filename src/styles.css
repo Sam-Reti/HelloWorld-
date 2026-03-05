@@ -126,3 +126,66 @@ body[data-theme='dracula'] {
   --nav-active: rgba(189, 147, 249, 0.1);
   --nav-active-border: rgba(189, 147, 249, 0.25);
 }
+
+/* ── Hiyve control bar overrides ────────────────────────── */
+
+/* Force mini-fab buttons to be proper circles */
+hiyve-control-bar button.mat-mdc-mini-fab,
+hiyve-control-bar button.mdc-fab--mini {
+  width: 48px !important;
+  height: 48px !important;
+  border-radius: 50% !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  min-width: unset !important;
+  flex-shrink: 0;
+}
+
+hiyve-control-bar button.mat-mdc-mini-fab .mat-icon,
+hiyve-control-bar button.mdc-fab--mini .mat-icon {
+  font-size: 22px !important;
+  width: 22px !important;
+  height: 22px !important;
+  line-height: 22px !important;
+  color: #ffffff !important;
+}
+
+/* Settings dropdown panel — dark + opaque */
+.mat-mdc-menu-panel.mat-mdc-menu-panel {
+  background: #1e1e30 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6) !important;
+  min-width: 220px !important;
+}
+
+.mat-mdc-menu-item {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.mat-mdc-menu-item:hover:not([disabled]) {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.mat-mdc-menu-item .mat-icon {
+  color: rgba(255, 255, 255, 0.6) !important;
+  margin-right: 10px !important;
+}
+
+.device-section-label {
+  padding: 10px 16px 4px !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.6px !important;
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+.mat-mdc-menu-content {
+  padding: 6px !important;
+}
+
+.mat-mdc-menu-item {
+  border-radius: 8px !important;
+  margin: 1px 0 !important;
+}

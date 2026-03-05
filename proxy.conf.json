@@ -1,0 +1,10 @@
+{
+  "/api": {
+    "target": "http://localhost:5001",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/api": "/dev-world-v1/us-central1/api/api"
+    }
+  }
+}
