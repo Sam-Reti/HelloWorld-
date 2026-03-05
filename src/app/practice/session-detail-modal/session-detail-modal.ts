@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, Output, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { MarkdownPipe } from '../../pipes/markdown.pipe';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { PostService } from '../../services/postservice';
@@ -9,7 +10,7 @@ import { PracticeSession } from '../practice.models';
 @Component({
   selector: 'app-session-detail-modal',
   standalone: true,
-  imports: [DatePipe, FormsModule],
+  imports: [DatePipe, FormsModule, MarkdownPipe],
   templateUrl: './session-detail-modal.html',
   styleUrl: './session-detail-modal.css',
 })

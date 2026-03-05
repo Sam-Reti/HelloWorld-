@@ -77,8 +77,8 @@ export class FollowService {
 
       tx.set(myFollowingRef, { createdAt: serverTimestamp() });
       tx.set(theirFollowersRef, { createdAt: serverTimestamp() });
-      tx.update(myRef, { followingCount: increment(1) });
-      tx.update(theirRef, { followerCount: increment(1) });
+      tx.set(myRef, { followingCount: increment(1) }, { merge: true });
+      tx.set(theirRef, { followerCount: increment(1) }, { merge: true });
     });
 
     // Notification is non-critical — outside transaction

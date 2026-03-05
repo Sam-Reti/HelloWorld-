@@ -1,11 +1,12 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { Post } from '../../services/postservice';
+import { MarkdownPipe } from '../../pipes/markdown.pipe';
 
 @Component({
   selector: 'app-practice-result-modal',
   standalone: true,
-  imports: [DatePipe],
+  imports: [DatePipe, MarkdownPipe],
   templateUrl: './practice-result-modal.html',
   styleUrl: './practice-result-modal.css',
 })

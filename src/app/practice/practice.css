@@ -9,19 +9,43 @@
 
 .practice-header {
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
 }
 
 .practice-title {
   font-size: 1.6rem;
   font-weight: 700;
-  margin: 0 0 6px;
+  margin: 0;
   color: var(--text);
 }
 
-.practice-subtitle {
-  margin: 0;
+.mode-toggle {
+  display: flex;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 4px;
+  gap: 4px;
+}
+
+.mode-btn {
+  padding: 7px 18px;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
   color: var(--text-muted);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.mode-btn.active {
+  background: var(--accent, #6366f1);
+  color: #fff;
 }
 
 /* Error banner */
@@ -267,6 +291,7 @@
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 16px 20px;
+  overflow-y: auto;
 }
 
 .description-label {
@@ -282,6 +307,20 @@
   margin: 0;
   line-height: 1.6;
   color: var(--text);
+  overflow-wrap: break-word;
+  min-width: 0;
+}
+
+:host ::ng-deep .description-text pre {
+  overflow-x: auto;
+  white-space: pre;
+  max-width: 100%;
+}
+
+:host ::ng-deep .description-text pre code {
+  display: inline-block;
+  white-space: pre;
+  min-width: max-content;
 }
 
 .editor-wrapper {
@@ -382,6 +421,21 @@
   padding: 16px 20px;
   line-height: 1.6;
   color: var(--text);
+  overflow-wrap: break-word;
+  min-width: 0;
+  overflow-y: auto;
+}
+
+:host ::ng-deep .feedback-text pre {
+  overflow-x: auto;
+  white-space: pre;
+  max-width: 100%;
+}
+
+:host ::ng-deep .feedback-text pre code {
+  display: inline-block;
+  white-space: pre;
+  min-width: max-content;
 }
 
 .result-meta {

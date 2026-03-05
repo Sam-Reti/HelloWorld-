@@ -18,6 +18,8 @@ export type PracticeCategory =
 
 export type PracticeLevel = 'Easy' | 'Medium' | 'Hard';
 
+export type PracticeMode = 'fix' | 'build';
+
 export type PracticeState = 'selecting' | 'loading' | 'coding' | 'grading' | 'result';
 
 export interface ChallengePayload {
@@ -34,6 +36,7 @@ export interface GradePayload {
 
 export interface PracticeSession {
   uid: string;
+  mode?: PracticeMode;
   language: PracticeLanguage;
   category: PracticeCategory;
   level: PracticeLevel;

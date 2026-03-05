@@ -26,7 +26,7 @@
     @if (post.practiceDescription) {
       <section class="modal-section">
         <h3 class="section-title">Challenge Description</h3>
-        <p class="section-text">{{ post.practiceDescription }}</p>
+        <div class="section-text" [innerHTML]="post.practiceDescription | markdown"></div>
       </section>
     }
 
@@ -54,7 +54,7 @@
     @if (post.practiceFeedback) {
       <section class="modal-section">
         <h3 class="section-title">AI Feedback</h3>
-        <p class="section-text">{{ post.practiceFeedback }}</p>
+        <div class="section-text" [innerHTML]="post.practiceFeedback | markdown"></div>
       </section>
     }
 

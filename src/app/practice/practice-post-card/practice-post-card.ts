@@ -1,11 +1,12 @@
 import { Component, Input, signal } from '@angular/core';
 import { Post } from '../../services/postservice';
 import { PracticeResultModalComponent } from '../practice-result-modal/practice-result-modal';
+import { MarkdownPipe } from '../../pipes/markdown.pipe';
 
 @Component({
   selector: 'app-practice-post-card',
   standalone: true,
-  imports: [PracticeResultModalComponent],
+  imports: [PracticeResultModalComponent, MarkdownPipe],
   templateUrl: './practice-post-card.html',
   styleUrl: './practice-post-card.css',
 })

@@ -58,12 +58,43 @@ Respond with ONLY valid JSON (no markdown fences), in this shape:
     return parseJson<ChallengePayload>(text);
   }
 
+  async generateBuildChallenge(
+    language: PracticeLanguage,
+    category: PracticeCategory,
+    level: PracticeLevel,
+  ): Promise<ChallengePayload> {
+    const model = this.getModel();
+    const prompt = `Generate a ${language} coding challenge in the category '${category}' at difficulty '${level}'. The user will implement it from scratch.
+
+Difficulty guide:
+- Easy: single simple function, clear inputs/outputs, beginner-friendly
+- Medium: moderate complexity, common algorithms or data structures
+- Hard: multi-function solution, advanced patterns, edge-case-heavy
+
+Requirements:
+- Write a clear specification describing what to build, what inputs it takes, what it should return or do
+- Include 2–3 concrete examples with inputs and expected outputs
+- Do NOT include any code or hints about implementation
+
+Respond with ONLY valid JSON (no markdown fences), in this shape:
+{"description": "..."}`;
+
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+    const parsed = parseJson<{ description: string }>(text);
+    return { code: '', description: parsed.description };
+  }
+
   async gradeSubmission(
     language: PracticeLanguage,
     category: PracticeCategory,
     originalCode: string,
     fixedCode: string,
   ): Promise<GradePayload> {
+    if (!fixedCode.trim()) {
+      return { score: 0, grade: 'F', feedback: 'No code was submitted.', correctedCode: originalCode };
+    }
+
     const model = this.getModel();
     const prompt = `You are grading a ${language} code fix in category '${category}'.
 
@@ -77,6 +108,8 @@ USER'S FIX:
 ${fixedCode}
 \`\`\`
 
+IMPORTANT: Grade ONLY the code in USER'S FIX above. Do not infer or assume any fixes that are not explicitly present in the submitted code.
+
 Grade the fix. Consider:
 - Did they fix the core bug(s)?
 - Did they introduce new bugs?
@@ -86,6 +119,44 @@ Grading scale: A=90-100, B=80-89, C=70-79, D=60-69, F=0-59
 
 Respond with ONLY valid JSON (no markdown fences), in this shape:
 {"score": <0-100>, "grade": "<A|B|C|D|F>", "feedback": "<explanation of what the bugs were and whether the user fixed them>", "correctedCode": "<the fully correct version of the code>"}`;
+
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+    return parseJson<GradePayload>(text);
+  }
+
+  async gradeBuildSubmission(
+    language: PracticeLanguage,
+    category: PracticeCategory,
+    description: string,
+    submission: string,
+  ): Promise<GradePayload> {
+    if (!submission.trim()) {
+      return { score: 0, grade: 'F', feedback: 'No code was submitted.', correctedCode: '' };
+    }
+
+    const model = this.getModel();
+    const prompt = `You are grading a ${language} implementation in category '${category}'.
+
+CHALLENGE SPECIFICATION:
+${description}
+
+USER'S IMPLEMENTATION:
+\`\`\`
+${submission}
+\`\`\`
+
+IMPORTANT: Grade ONLY the code in USER'S IMPLEMENTATION above. Do not give credit for anything not explicitly written in the submitted code.
+
+Grade the implementation. Consider:
+- Does it correctly implement what the specification describes?
+- Does it handle the example cases and edge cases?
+- Did they introduce any bugs or incorrect logic?
+
+Grading scale: A=90-100, B=80-89, C=70-79, D=60-69, F=0-59
+
+Respond with ONLY valid JSON (no markdown fences), in this shape:
+{"score": <0-100>, "grade": "<A|B|C|D|F>", "feedback": "<explanation of how well the implementation matches the spec and what could be improved>", "correctedCode": "<a clean, correct reference implementation>"}`;
 
     const result = await model.generateContent(prompt);
     const text = result.response.text();

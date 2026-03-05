@@ -20,7 +20,7 @@
   </div>
 
   @if (post.practiceDescription) {
-    <p class="description-preview">{{ post.practiceDescription }}</p>
+    <div class="description-preview" [innerHTML]="post.practiceDescription | markdown"></div>
   }
 
   <div class="view-details">Click to view full details →</div>

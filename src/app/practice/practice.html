@@ -1,7 +1,18 @@
 <div class="practice-container">
   <div class="practice-header">
     <h2 class="practice-title">Practice Room</h2>
-    <p class="practice-subtitle">Fix AI-generated buggy code and get instant feedback</p>
+    <div class="mode-toggle">
+      <button
+        class="mode-btn"
+        [class.active]="selectedMode() === 'fix'"
+        (click)="selectedMode.set('fix')"
+      >Fix the Bug</button>
+      <button
+        class="mode-btn"
+        [class.active]="selectedMode() === 'build'"
+        (click)="selectedMode.set('build')"
+      >Build from Scratch</button>
+    </div>
   </div>
 
   @if (errorMessage()) {
@@ -107,7 +118,7 @@
     <div class="spinner-container">
       <div class="spinner"></div>
       <p class="spinner-label">
-        {{ state() === 'loading' ? 'Generating your challenge...' : 'Grading your solution...' }}
+        {{ state() === 'loading' ? 'Generating your challenge...' : 'Grading your submission...' }}
       </p>
     </div>
   }
@@ -116,8 +127,8 @@
     <div class="coding-panel">
       @if (challenge(); as ch) {
         <div class="description-box">
-          <div class="description-label">Challenge</div>
-          <p class="description-text">{{ ch.description }}</p>
+          <div class="description-label">{{ selectedMode() === 'build' ? 'Build This' : 'Challenge' }}</div>
+          <div class="description-text" [innerHTML]="ch.description | markdown"></div>
         </div>
       }
 
@@ -130,7 +141,9 @@
       </div>
 
       <div class="coding-actions">
-        <button class="btn-primary" (click)="submitSolution()">Submit Fix</button>
+        <button class="btn-primary" (click)="submitSolution()">
+          {{ selectedMode() === 'build' ? 'Submit' : 'Submit Fix' }}
+        </button>
         <button class="btn-secondary" (click)="cancelCoding()">Cancel</button>
       </div>
     </div>
@@ -168,9 +181,9 @@
             >Question</button>
           </div>
           @if (feedbackTab() === 'feedback') {
-            <p class="feedback-text">{{ gr.feedback }}</p>
+            <div class="feedback-text" [innerHTML]="gr.feedback | markdown"></div>
           } @else {
-            <p class="feedback-text">{{ challenge()?.description }}</p>
+            <div class="feedback-text" [innerHTML]="(challenge()?.description ?? '') | markdown"></div>
           }
         </div>
 

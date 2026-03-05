@@ -6,10 +6,12 @@ import { PracticeService } from '../services/practice.service';
 import { PostService } from '../services/postservice';
 import { ScrollService } from '../services/scroll.service';
 import { CodeEditorComponent } from './code-editor/code-editor';
+import { MarkdownPipe } from '../pipes/markdown.pipe';
 import {
   PracticeLanguage,
   PracticeCategory,
   PracticeLevel,
+  PracticeMode,
   PracticeState,
   ChallengePayload,
   GradePayload,
@@ -40,7 +42,7 @@ const LEVELS: PracticeLevel[] = ['Easy', 'Medium', 'Hard'];
 @Component({
   selector: 'app-practice',
   standalone: true,
-  imports: [CodeEditorComponent, FormsModule],
+  imports: [CodeEditorComponent, FormsModule, MarkdownPipe],
   templateUrl: './practice.html',
   styleUrl: './practice.css',
 })
@@ -57,6 +59,7 @@ export class PracticeComponent {
 
   state = signal<PracticeState>('selecting');
   errorMessage = signal('');
+  selectedMode = signal<PracticeMode>('fix');
   selectedLanguage = signal<PracticeLanguage>('Python');
   selectedCategory = signal<PracticeCategory>('Logic Bugs');
   selectedLevel = signal<PracticeLevel>('Medium');
@@ -77,11 +80,17 @@ export class PracticeComponent {
     this.errorMessage.set('');
     this.state.set('loading');
     try {
-      const payload = await this.practiceService.generateChallenge(
-        this.selectedLanguage(),
-        this.selectedCategory(),
-        this.selectedLevel(),
-      );
+      const payload = this.selectedMode() === 'build'
+        ? await this.practiceService.generateBuildChallenge(
+            this.selectedLanguage(),
+            this.selectedCategory(),
+            this.selectedLevel(),
+          )
+        : await this.practiceService.generateChallenge(
+            this.selectedLanguage(),
+            this.selectedCategory(),
+            this.selectedLevel(),
+          );
       this.challenge.set(payload);
       this.submission.set(payload.code);
       this.state.set('coding');
@@ -102,18 +111,26 @@ export class PracticeComponent {
     this.errorMessage.set('');
     this.state.set('grading');
     try {
-      const grade = await this.practiceService.gradeSubmission(
-        this.selectedLanguage(),
-        this.selectedCategory(),
-        ch.code,
-        this.submission(),
-      );
+      const grade = this.selectedMode() === 'build'
+        ? await this.practiceService.gradeBuildSubmission(
+            this.selectedLanguage(),
+            this.selectedCategory(),
+            ch.description,
+            this.submission(),
+          )
+        : await this.practiceService.gradeSubmission(
+            this.selectedLanguage(),
+            this.selectedCategory(),
+            ch.code,
+            this.submission(),
+          );
       this.gradeResult.set(grade);
 
       const user = this.auth.currentUser;
       if (user) {
         await this.practiceService.saveSession({
           uid: user.uid,
+          mode: this.selectedMode(),
           language: this.selectedLanguage(),
           category: this.selectedCategory(),
           level: this.selectedLevel(),

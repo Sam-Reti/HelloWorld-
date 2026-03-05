@@ -114,7 +114,20 @@
   color: var(--text);
   line-height: 1.6;
   margin: 0;
-  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  min-width: 0;
+}
+
+:host ::ng-deep .section-text pre {
+  overflow-x: auto;
+  white-space: pre;
+  max-width: 100%;
+}
+
+:host ::ng-deep .section-text pre code {
+  display: inline-block;
+  white-space: pre;
+  min-width: max-content;
 }
 
 /* Code blocks stay dark regardless of theme, matching the feed pattern */

@@ -20,7 +20,7 @@
     @if (session.challengeDescription) {
       <section class="modal-section">
         <h3 class="section-title">Challenge Description</h3>
-        <p class="section-text">{{ session.challengeDescription }}</p>
+        <div class="section-text" [innerHTML]="session.challengeDescription | markdown"></div>
       </section>
     }
 
@@ -48,7 +48,7 @@
     @if (session.feedback) {
       <section class="modal-section">
         <h3 class="section-title">AI Feedback</h3>
-        <p class="section-text">{{ session.feedback }}</p>
+        <div class="section-text" [innerHTML]="session.feedback | markdown"></div>
       </section>
     }
 
