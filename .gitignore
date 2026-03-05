@@ -8,8 +8,18 @@
 
 # Node
 /node_modules
+**/node_modules
 npm-debug.log
 yarn-error.log
+
+# Secrets
+.env
+.env.*
+.npmrc
+**/.npmrc
+
+# Firebase
+.firebase/
 
 # IDEs and editors
 .idea/
