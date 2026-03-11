@@ -14,6 +14,108 @@ app.use('/api', apiRouter);
 
 export const api = functions.https.onRequest(app);
 
+// Triggered whenever a user document is updated.
+// Propagates displayName / avatarColor changes to all denormalized copies
+// in posts, comments, and conversations.
+export const syncProfileToContent = functions.firestore
+  .document('users/{uid}')
+  .onUpdate(async (change, context) => {
+    const uid = context.params['uid'] as string;
+    const before = change.before.data();
+    const after = change.after.data();
+
+    const nameChanged = before['displayName'] !== after['displayName'];
+    const colorChanged = before['avatarColor'] !== after['avatarColor'];
+
+    if (!nameChanged && !colorChanged) return null;
+
+    const db = admin.firestore();
+    const writes: { ref: admin.firestore.DocumentReference; data: Record<string, unknown> }[] = [];
+
+    // 1. Posts — authorDisplayName + authorAvatarColor
+    const postsSnap = await db.collection('posts').where('authorId', '==', uid).get();
+    for (const postDoc of postsSnap.docs) {
+      const data: Record<string, unknown> = {};
+      if (nameChanged) data['authorDisplayName'] = after['displayName'] ?? null;
+      if (colorChanged) data['authorAvatarColor'] = after['avatarColor'] ?? null;
+      writes.push({ ref: postDoc.ref, data });
+    }
+
+    // 2. Comments (collection group) — authorName + authorAvatarColor
+    const commentsSnap = await db.collectionGroup('comments').where('authorId', '==', uid).get();
+    for (const commentDoc of commentsSnap.docs) {
+      const data: Record<string, unknown> = {};
+      if (nameChanged) data['authorName'] = after['displayName'] ?? null;
+      if (colorChanged) data['authorAvatarColor'] = after['avatarColor'] ?? null;
+      writes.push({ ref: commentDoc.ref, data });
+    }
+
+    // 3. Conversations — participantNames.{uid} + participantColors.{uid}
+    const convosSnap = await db
+      .collection('conversations')
+      .where('participantIds', 'array-contains', uid)
+      .get();
+    for (const convoDoc of convosSnap.docs) {
+      const data: Record<string, unknown> = {};
+      if (nameChanged) data[`participantNames.${uid}`] = after['displayName'] ?? null;
+      if (colorChanged) data[`participantColors.${uid}`] = after['avatarColor'] ?? null;
+      writes.push({ ref: convoDoc.ref, data });
+    }
+
+    if (writes.length === 0) return null;
+
+    // Commit in batches of 500 (Firestore limit per batch)
+    const BATCH_SIZE = 500;
+    for (let i = 0; i < writes.length; i += BATCH_SIZE) {
+      const batch = db.batch();
+      for (const { ref, data } of writes.slice(i, i + BATCH_SIZE)) {
+        batch.update(ref, data);
+      }
+      await batch.commit();
+    }
+
+    functions.logger.info(`syncProfileToContent: uid=${uid} updated ${writes.length} docs`, {
+      nameChanged,
+      colorChanged,
+    });
+
+    return null;
+  });
+
+// Maintain followerCount on the target user whenever a follower doc is written or deleted.
+// Using the subcollection doc as the source of truth means counts can never drift —
+// every follow/unfollow is reflected here regardless of whether the client succeeded.
+export const onFollowerWrite = functions.firestore
+  .document('users/{uid}/followers/{followerId}')
+  .onWrite(async (change, context) => {
+    const uid = context.params['uid'] as string;
+    const created = !change.before.exists && change.after.exists;
+    const deleted = change.before.exists && !change.after.exists;
+    if (!created && !deleted) return null;
+
+    const delta = created ? 1 : -1;
+    await admin.firestore().doc(`users/${uid}`).update({
+      followerCount: admin.firestore.FieldValue.increment(delta),
+    });
+    return null;
+  });
+
+// Maintain followingCount on the acting user whenever a following doc is written or deleted.
+export const onFollowingWrite = functions.firestore
+  .document('users/{uid}/following/{targetId}')
+  .onWrite(async (change, context) => {
+    const uid = context.params['uid'] as string;
+    const created = !change.before.exists && change.after.exists;
+    const deleted = change.before.exists && !change.after.exists;
+    if (!created && !deleted) return null;
+
+    const delta = created ? 1 : -1;
+    await admin.firestore().doc(`users/${uid}`).update({
+      followingCount: admin.firestore.FieldValue.increment(delta),
+    });
+    return null;
+  });
+
 // Run once to repair follower/following counts that drifted out of sync.
 // Call via: firebase functions:call repairFollowCounts (or HTTP GET with ?secret=...)
 export const repairFollowCounts = functions.https.onCall(async (
@@ -41,3 +143,4 @@ export const repairFollowCounts = functions.https.onCall(async (
 
   return { repaired: results.length, users: results };
 });
+

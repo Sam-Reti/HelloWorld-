@@ -7,7 +7,7 @@ import {
   addDoc,
 } from '@angular/fire/firestore';
 import { Auth, authState } from '@angular/fire/auth';
-import { increment, serverTimestamp, runTransaction } from 'firebase/firestore';
+import { serverTimestamp, runTransaction } from 'firebase/firestore';
 import { Observable, of, switchMap, map, shareReplay } from 'rxjs';
 
 export interface PublicUser {
@@ -67,18 +67,16 @@ export class FollowService {
 
     const myFollowingRef = doc(this.firestore, `users/${user.uid}/following/${targetUid}`);
     const theirFollowersRef = doc(this.firestore, `users/${targetUid}/followers/${user.uid}`);
-    const myRef = doc(this.firestore, `users/${user.uid}`);
-    const theirRef = doc(this.firestore, `users/${targetUid}`);
     const notifCol = collection(this.firestore, `users/${targetUid}/notifications`);
 
+    // Only create the relationship docs — counts are maintained by Cloud Functions
+    // triggered on these subcollection writes, so they can never drift.
     await runTransaction(this.firestore, async (tx) => {
       const alreadyFollowing = await tx.get(myFollowingRef);
       if (alreadyFollowing.exists()) return;
 
       tx.set(myFollowingRef, { createdAt: serverTimestamp() });
       tx.set(theirFollowersRef, { createdAt: serverTimestamp() });
-      tx.set(myRef, { followingCount: increment(1) }, { merge: true });
-      tx.set(theirRef, { followerCount: increment(1) }, { merge: true });
     });
 
     // Notification is non-critical — outside transaction
@@ -97,25 +95,14 @@ export class FollowService {
 
     const myFollowingRef = doc(this.firestore, `users/${user.uid}/following/${targetUid}`);
     const theirFollowersRef = doc(this.firestore, `users/${targetUid}/followers/${user.uid}`);
-    const myRef = doc(this.firestore, `users/${user.uid}`);
-    const theirRef = doc(this.firestore, `users/${targetUid}`);
 
+    // Only delete the relationship docs — counts updated by Cloud Functions.
     await runTransaction(this.firestore, async (tx) => {
-      const [followSnap, mySnap, theirSnap] = await Promise.all([
-        tx.get(myFollowingRef),
-        tx.get(myRef),
-        tx.get(theirRef),
-      ]);
-
+      const followSnap = await tx.get(myFollowingRef);
       if (!followSnap.exists()) return;
-
-      const myCount = (mySnap.data() as any)?.followingCount ?? 0;
-      const theirCount = (theirSnap.data() as any)?.followerCount ?? 0;
 
       tx.delete(myFollowingRef);
       tx.delete(theirFollowersRef);
-      tx.update(myRef, { followingCount: Math.max(0, myCount - 1) });
-      tx.update(theirRef, { followerCount: Math.max(0, theirCount - 1) });
     });
   }
 }

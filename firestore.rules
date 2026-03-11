@@ -60,8 +60,16 @@ service cloud.firestore {
     // Conversations (direct messages)
     match /conversations/{conversationId} {
       allow read: if isAuth() && (resource == null || request.auth.uid in resource.data.participantIds);
-      allow update: if isAuth() && request.auth.uid in resource.data.participantIds;
-      allow create: if isAuth() && request.auth.uid in request.resource.data.participantIds;
+      // Participants may only touch the fields the app actually updates.
+      allow update: if isAuth()
+        && request.auth.uid in resource.data.participantIds
+        && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['lastMessage', 'lastMessageAt', 'lastMessageSenderId', 'unreadBy',
+                      'participantNames', 'participantColors']);
+      // Enforce exactly two participants; caller must be one of them.
+      allow create: if isAuth()
+        && request.auth.uid in request.resource.data.participantIds
+        && request.resource.data.participantIds.size() == 2;
 
       match /messages/{messageId} {
         allow read: if isAuth()
@@ -79,21 +87,15 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isAuth();
       allow create: if isAuth() && isOwner(userId);
-      // Owner can update anything except isAdmin (only an existing admin can grant admin);
-      // others can ONLY change followerCount by ±1
-      allow update: if isAuth() && (
-        (
-          isOwner(userId)
-          && (
-            !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isAdmin'])
-            || isAdmin()
-          )
-        ) ||
-        (
-          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followerCount'])
-          && changedByOne('followerCount')
-        )
-      );
+      // Only the owner may update their own profile.
+      // followerCount / followingCount are maintained by Cloud Functions (Admin SDK),
+      // so no client-side permission is needed for those fields.
+      allow update: if isAuth()
+        && isOwner(userId)
+        && (
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isAdmin'])
+          || isAdmin()
+        );
       allow delete: if isOwner(userId);
 
       // Notifications: owner has full access; any authed user can create (with required fields)
@@ -123,12 +125,13 @@ service cloud.firestore {
         return request.auth.uid == resource.data.callerId
             || request.auth.uid == resource.data.calleeId;
       }
-      allow read: if isAuth() && (resource == null || isParticipant());
+      allow read: if isAuth() && isParticipant();
       allow create: if isAuth()
         && request.resource.data.callerId == request.auth.uid
         && request.resource.data.status == 'ringing';
+      // Participants may only transition the call status — room name is immutable.
       allow update: if isAuth() && isParticipant()
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'roomName']);
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']);
       allow delete: if isAuth() && isParticipant();
     }
 
