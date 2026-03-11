@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { BackgroundImage } from './background-image';
 
 describe('BackgroundImage', () => {
@@ -8,9 +7,8 @@ describe('BackgroundImage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [BackgroundImage]
-    })
-    .compileComponents();
+      imports: [BackgroundImage],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(BackgroundImage);
     component = fixture.componentInstance;
