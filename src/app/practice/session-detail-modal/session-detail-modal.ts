@@ -65,8 +65,8 @@ export class SessionDetailModalComponent {
       const postId = await this.postService.createPracticePost(
         {
           language: this.session.language,
-          category: this.session.category,
-          level: this.session.level,
+          category: this.session.category ?? 'Custom Prompt',
+          level: this.session.level ?? 'Custom',
           score: this.session.score,
           grade: this.session.grade,
           feedback: this.session.feedback,

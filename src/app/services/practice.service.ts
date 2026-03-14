@@ -85,6 +85,30 @@ Respond with ONLY valid JSON (no markdown fences), in this shape:
     return { code: '', description: parsed.description };
   }
 
+  async generatePromptChallenge(
+    language: PracticeLanguage,
+    userPrompt: string,
+  ): Promise<ChallengePayload> {
+    const model = this.getModel();
+    const prompt = `Generate a ${language} coding challenge based on this user request:
+
+"${userPrompt}"
+
+Requirements:
+- Write a clear specification describing what to build, what inputs it takes, what it should return or do
+- Include 2–3 concrete examples with inputs and expected outputs
+- Do NOT include any code or hints about implementation
+- Tailor the challenge to what the user asked for
+
+Respond with ONLY valid JSON (no markdown fences), in this shape:
+{"description": "..."}`;
+
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+    const parsed = parseJson<{ description: string }>(text);
+    return { code: '', description: parsed.description };
+  }
+
   async gradeSubmission(
     language: PracticeLanguage,
     category: PracticeCategory,
@@ -127,7 +151,7 @@ Respond with ONLY valid JSON (no markdown fences), in this shape:
 
   async gradeBuildSubmission(
     language: PracticeLanguage,
-    category: PracticeCategory,
+    category: PracticeCategory | undefined,
     description: string,
     submission: string,
   ): Promise<GradePayload> {
@@ -135,8 +159,9 @@ Respond with ONLY valid JSON (no markdown fences), in this shape:
       return { score: 0, grade: 'F', feedback: 'No code was submitted.', correctedCode: '' };
     }
 
+    const categoryClause = category ? ` in category '${category}'` : '';
     const model = this.getModel();
-    const prompt = `You are grading a ${language} implementation in category '${category}'.
+    const prompt = `You are grading a ${language} implementation${categoryClause}.
 
 CHALLENGE SPECIFICATION:
 ${description}

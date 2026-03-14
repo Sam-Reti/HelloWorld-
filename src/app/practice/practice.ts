@@ -71,6 +71,8 @@ export class PracticeComponent {
   sharing = signal(false);
   shared = signal(false);
 
+  customPrompt = signal('');
+
   scratchCode = signal('');
   sharingScratch = signal(false);
   showCompose = signal<'practice' | 'scratch' | null>(null);
@@ -78,19 +80,34 @@ export class PracticeComponent {
 
   async generateChallenge() {
     this.errorMessage.set('');
+    const mode = this.selectedMode();
+
+    if (mode === 'prompt' && !this.customPrompt().trim()) {
+      this.errorMessage.set('Please describe the challenge you want.');
+      return;
+    }
+
     this.state.set('loading');
     try {
-      const payload = this.selectedMode() === 'build'
-        ? await this.practiceService.generateBuildChallenge(
-            this.selectedLanguage(),
-            this.selectedCategory(),
-            this.selectedLevel(),
-          )
-        : await this.practiceService.generateChallenge(
-            this.selectedLanguage(),
-            this.selectedCategory(),
-            this.selectedLevel(),
-          );
+      let payload: ChallengePayload;
+      if (mode === 'prompt') {
+        payload = await this.practiceService.generatePromptChallenge(
+          this.selectedLanguage(),
+          this.customPrompt(),
+        );
+      } else if (mode === 'build') {
+        payload = await this.practiceService.generateBuildChallenge(
+          this.selectedLanguage(),
+          this.selectedCategory(),
+          this.selectedLevel(),
+        );
+      } else {
+        payload = await this.practiceService.generateChallenge(
+          this.selectedLanguage(),
+          this.selectedCategory(),
+          this.selectedLevel(),
+        );
+      }
       this.challenge.set(payload);
       this.submission.set(payload.code);
       this.state.set('coding');
@@ -111,10 +128,11 @@ export class PracticeComponent {
     this.errorMessage.set('');
     this.state.set('grading');
     try {
-      const grade = this.selectedMode() === 'build'
+      const mode = this.selectedMode();
+      const grade = mode === 'build' || mode === 'prompt'
         ? await this.practiceService.gradeBuildSubmission(
             this.selectedLanguage(),
-            this.selectedCategory(),
+            mode === 'prompt' ? undefined : this.selectedCategory(),
             ch.description,
             this.submission(),
           )
@@ -128,12 +146,13 @@ export class PracticeComponent {
 
       const user = this.auth.currentUser;
       if (user) {
+        const isPrompt = this.selectedMode() === 'prompt';
         await this.practiceService.saveSession({
           uid: user.uid,
           mode: this.selectedMode(),
           language: this.selectedLanguage(),
-          category: this.selectedCategory(),
-          level: this.selectedLevel(),
+          ...(isPrompt ? {} : { category: this.selectedCategory(), level: this.selectedLevel() }),
+          ...(isPrompt ? { customPrompt: this.customPrompt() } : {}),
           challenge: ch.code,
           challengeDescription: ch.description,
           submission: this.submission(),
@@ -233,6 +252,7 @@ export class PracticeComponent {
     this.feedbackTab.set('feedback');
     this.sharing.set(false);
     this.shared.set(false);
+    this.customPrompt.set('');
     this.state.set('selecting');
   }
 

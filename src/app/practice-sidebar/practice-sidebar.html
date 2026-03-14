@@ -26,8 +26,8 @@
             {{ s.grade }}
           </div>
           <div class="session-info">
-            <div class="session-lang">{{ s.language }} · {{ s.level }}</div>
-            <div class="session-cat">{{ s.category }}</div>
+            <div class="session-lang">{{ s.language }} · {{ s.level ?? 'Custom' }}</div>
+            <div class="session-cat">{{ s.category ?? 'Custom Prompt' }}</div>
           </div>
           <div class="session-score">{{ s.score }}</div>
         </div>

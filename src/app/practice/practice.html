@@ -12,6 +12,11 @@
         [class.active]="selectedMode() === 'build'"
         (click)="selectedMode.set('build')"
       >Build from Scratch</button>
+      <button
+        class="mode-btn"
+        [class.active]="selectedMode() === 'prompt'"
+        (click)="selectedMode.set('prompt')"
+      >Custom Prompt</button>
     </div>
   </div>
 
@@ -36,38 +41,50 @@
         </div>
       </div>
 
-      <div class="select-group">
-        <div class="select-label">Category</div>
-        <div class="chip-row">
-          @for (cat of categories; track cat) {
-            <button
-              class="chip"
-              [class.selected]="selectedCategory() === cat"
-              (click)="selectedCategory.set(cat)"
-            >
-              {{ cat }}
-            </button>
-          }
+      @if (selectedMode() !== 'prompt') {
+        <div class="select-group">
+          <div class="select-label">Category</div>
+          <div class="chip-row">
+            @for (cat of categories; track cat) {
+              <button
+                class="chip"
+                [class.selected]="selectedCategory() === cat"
+                (click)="selectedCategory.set(cat)"
+              >
+                {{ cat }}
+              </button>
+            }
+          </div>
         </div>
-      </div>
 
-      <div class="select-group">
-        <div class="select-label">Difficulty</div>
-        <div class="chip-row">
-          @for (lvl of levels; track lvl) {
-            <button
-              class="chip level-chip"
-              [class.selected]="selectedLevel() === lvl"
-              [class.easy]="lvl === 'Easy'"
-              [class.medium]="lvl === 'Medium'"
-              [class.hard]="lvl === 'Hard'"
-              (click)="selectedLevel.set(lvl)"
-            >
-              {{ lvl }}
-            </button>
-          }
+        <div class="select-group">
+          <div class="select-label">Difficulty</div>
+          <div class="chip-row">
+            @for (lvl of levels; track lvl) {
+              <button
+                class="chip level-chip"
+                [class.selected]="selectedLevel() === lvl"
+                [class.easy]="lvl === 'Easy'"
+                [class.medium]="lvl === 'Medium'"
+                [class.hard]="lvl === 'Hard'"
+                (click)="selectedLevel.set(lvl)"
+              >
+                {{ lvl }}
+              </button>
+            }
+          </div>
         </div>
-      </div>
+      } @else {
+        <div class="select-group">
+          <div class="select-label">Describe your challenge</div>
+          <textarea
+            class="prompt-textarea"
+            [ngModel]="customPrompt()" (ngModelChange)="customPrompt.set($event)"
+            placeholder="e.g. Write a function that checks if a binary tree is balanced"
+            rows="4"
+          ></textarea>
+        </div>
+      }
 
       <button class="btn-primary generate-btn" (click)="generateChallenge()">
         Generate Challenge
@@ -127,7 +144,7 @@
     <div class="coding-panel">
       @if (challenge(); as ch) {
         <div class="description-box">
-          <div class="description-label">{{ selectedMode() === 'build' ? 'Build This' : 'Challenge' }}</div>
+          <div class="description-label">{{ selectedMode() === 'fix' ? 'Challenge' : 'Build This' }}</div>
           <div class="description-text" [innerHTML]="ch.description | markdown"></div>
         </div>
       }
@@ -142,7 +159,7 @@
 
       <div class="coding-actions">
         <button class="btn-primary" (click)="submitSolution()">
-          {{ selectedMode() === 'build' ? 'Submit' : 'Submit Fix' }}
+          {{ selectedMode() === 'fix' ? 'Submit Fix' : 'Submit' }}
         </button>
         <button class="btn-secondary" (click)="cancelCoding()">Cancel</button>
       </div>
@@ -162,8 +179,12 @@
 
           <div class="result-meta">
             <span class="meta-chip">{{ selectedLanguage() }}</span>
-            <span class="meta-chip">{{ selectedCategory() }}</span>
-            <span class="meta-chip">{{ selectedLevel() }}</span>
+            @if (selectedMode() === 'prompt') {
+              <span class="meta-chip">Custom Prompt</span>
+            } @else {
+              <span class="meta-chip">{{ selectedCategory() }}</span>
+              <span class="meta-chip">{{ selectedLevel() }}</span>
+            }
           </div>
         </div>
 
