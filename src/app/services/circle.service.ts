@@ -307,6 +307,11 @@ export class CircleService {
     await updateDoc(circleRef, updates);
   }
 
+  /** Delete a circle (admin only). */
+  async deleteCircle(circleId: string): Promise<void> {
+    await deleteDoc(doc(this.firestore, `circles/${circleId}`));
+  }
+
   /** Accept an invitation. */
   async acceptInvite(circleId: string): Promise<void> {
     const user = this.auth.currentUser;

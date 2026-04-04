@@ -2,7 +2,7 @@ import { Component, inject, signal, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AsyncPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, switchMap, combineLatest, map, of } from 'rxjs';
 
 import { CircleService } from '../../services/circle.service';
@@ -22,6 +22,7 @@ export class CircleDetailComponent {
   private route = inject(ActivatedRoute);
   private circleService = inject(CircleService);
   private sessionService = inject(CircleSessionService);
+  private router = inject(Router);
   private destroyRef = inject(DestroyRef);
 
   showInviteModal = signal(false);
@@ -125,6 +126,12 @@ export class CircleDetailComponent {
     if (!this.editName.trim()) return;
     await this.circleService.updateCircle(circleId, this.editName, this.editBannerFile());
     this.editing.set(false);
+  }
+
+  async deleteCircle(circleId: string): Promise<void> {
+    if (!confirm('Are you sure you want to delete this circle? This cannot be undone.')) return;
+    await this.circleService.deleteCircle(circleId);
+    this.router.navigate(['/circles']);
   }
 
   onBannerSelect(event: Event): void {
