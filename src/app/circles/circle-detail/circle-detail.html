@@ -24,7 +24,11 @@
         </div>
 
         <div class="header-actions">
-          @if (myMembership$ | async; as membership) {
+          @if (isAdmin$ | async) {
+            <button class="btn btn-outline" (click)="showInviteModal.set(true)">Invite</button>
+            <button class="btn btn-outline" (click)="startEditCircle(circle)">Edit</button>
+            <button class="btn btn-danger" (click)="deleteCircle(circle.id!)">Delete</button>
+          } @else if (myMembership$ | async; as membership) {
             @if (membership.status === 'active') {
               <button class="btn btn-outline" (click)="leaveCircle(circle.id!)">Leave</button>
             } @else if (membership.status === 'pending') {
@@ -106,9 +110,6 @@
       @if (isAdmin$ | async) {
         <div class="admin-bar">
           <button class="btn btn-primary" (click)="startSession(circle)">Start Session</button>
-          <button class="btn btn-outline" (click)="showInviteModal.set(true)">Invite Members</button>
-          <button class="btn btn-outline" (click)="startEditCircle(circle)">Edit Circle</button>
-          <button class="btn btn-danger" (click)="deleteCircle(circle.id!)">Delete Circle</button>
         </div>
 
         <!-- Pending requests -->
