@@ -1,0 +1,181 @@
+@if (circle$ | async; as circle) {
+  <div class="detail-page">
+    <!-- Banner -->
+    @if (circle.bannerUrl) {
+      <div class="banner" [style.backgroundImage]="'url(' + circle.bannerUrl + ')'"></div>
+    } @else {
+      <div class="banner banner-default" [style.background]="circle.creatorAvatarColor || '#0ea5a4'">
+        <span class="banner-initials">{{ getInitials(circle.name) }}</span>
+      </div>
+    }
+
+    <div class="content">
+      <!-- Header -->
+      <div class="header">
+        <div class="header-info">
+          <h1 class="circle-name">{{ circle.name }}</h1>
+          <div class="circle-meta">
+            <span class="visibility-badge">{{ circle.visibility }}</span>
+            <span>{{ (activeMembers$ | async)?.length ?? circle.memberCount }} member{{ ((activeMembers$ | async)?.length ?? circle.memberCount) === 1 ? '' : 's' }}</span>
+          </div>
+          @if (circle.description) {
+            <p class="circle-desc">{{ circle.description }}</p>
+          }
+        </div>
+
+        <div class="header-actions">
+          @if (myMembership$ | async; as membership) {
+            @if (membership.status === 'active') {
+              <button class="btn btn-outline" (click)="leaveCircle(circle.id!)">Leave</button>
+            } @else if (membership.status === 'pending') {
+              <button class="btn btn-outline" disabled>Pending</button>
+            } @else if (membership.status === 'invited') {
+              <button class="btn btn-primary" (click)="acceptInvite(circle.id!)">Accept Invite</button>
+            }
+          } @else {
+            @if (circle.visibility === 'public') {
+              <button class="btn btn-primary" (click)="joinCircle(circle.id!)">Join</button>
+            } @else {
+              <button class="btn btn-primary" (click)="joinCircle(circle.id!)">Request to Join</button>
+            }
+          }
+        </div>
+      </div>
+
+      <!-- Active session banner -->
+      @for (session of (activeSessions$ | async) ?? []; track session.id) {
+        <div class="session-banner">
+          <div class="session-info">
+            <span class="session-live-dot"></span>
+            <span>Live session started by {{ session.startedByName }}</span>
+          </div>
+          @if (isMember$ | async) {
+            <button class="btn btn-live" (click)="joinSession(session)">Join Session</button>
+          }
+        </div>
+      }
+
+      <!-- Edit circle form (admin only) -->
+      @if (editing()) {
+        <div class="edit-form">
+          <h3 class="edit-form-title">Edit Circle</h3>
+
+          <label class="edit-label" for="editName">Circle Name</label>
+          <input
+            id="editName"
+            class="edit-input"
+            type="text"
+            [(ngModel)]="editName"
+            placeholder="Circle name"
+          />
+
+          <label class="edit-label">Banner</label>
+          <div class="edit-banner-preview-wrapper">
+            @if (editBannerPreview()) {
+              <div
+                class="edit-banner-preview"
+                [style.backgroundImage]="'url(' + editBannerPreview() + ')'"
+              ></div>
+            } @else {
+              <div
+                class="edit-banner-preview edit-banner-placeholder"
+                [style.background]="circle.creatorAvatarColor || '#0ea5a4'"
+              >
+                <span class="banner-initials">{{ getInitials(editName || circle.name) }}</span>
+              </div>
+            }
+            <label class="btn btn-outline edit-banner-btn">
+              Change Banner
+              <input
+                type="file"
+                accept="image/*"
+                hidden
+                (change)="onBannerSelect($event)"
+              />
+            </label>
+          </div>
+
+          <div class="edit-actions">
+            <button class="btn btn-primary" (click)="saveEditCircle(circle.id!)">Save</button>
+            <button class="btn btn-outline" (click)="cancelEditCircle()">Cancel</button>
+          </div>
+        </div>
+      }
+
+      <!-- Admin controls -->
+      @if (isAdmin$ | async) {
+        <div class="admin-bar">
+          <button class="btn btn-primary" (click)="startSession(circle)">Start Session</button>
+          <button class="btn btn-outline" (click)="showInviteModal.set(true)">Invite Members</button>
+          <button class="btn btn-outline" (click)="startEditCircle(circle)">Edit Circle</button>
+        </div>
+
+        <!-- Pending requests -->
+        @if ((pendingMembers$ | async)?.length) {
+          <div class="pending-section">
+            <h3 class="sub-title">Pending Requests</h3>
+            @for (member of (pendingMembers$ | async) ?? []; track member.uid) {
+              <div class="member-row">
+                <div class="member-avatar" [style.background]="member.avatarColor || '#0ea5a4'">
+                  {{ getInitials(member.displayName) }}
+                </div>
+                <span class="member-name">{{ member.displayName }}</span>
+                <div class="pending-actions">
+                  <button class="btn btn-sm btn-primary" (click)="approveMember(circle.id!, member.uid)">Approve</button>
+                  <button class="btn btn-sm btn-outline" (click)="rejectMember(circle.id!, member.uid)">Reject</button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      }
+
+      <!-- Tabs -->
+      <div class="tabs">
+        @if (isMember$ | async) {
+          <button
+            class="tab"
+            [class.tab-active]="activeTab() === 'feed'"
+            (click)="activeTab.set('feed')"
+          >Feed</button>
+        }
+        <button
+          class="tab"
+          [class.tab-active]="activeTab() === 'members'"
+          (click)="activeTab.set('members')"
+        >Members</button>
+      </div>
+
+      <!-- Feed tab (members only) -->
+      @if (activeTab() === 'feed' && (isMember$ | async)) {
+        <app-circle-feed [circleId]="circle.id!" />
+      }
+
+      <!-- Members tab -->
+      @if (activeTab() === 'members') {
+        <div class="members-section">
+          <div class="member-list">
+            @for (member of (activeMembers$ | async) ?? []; track member.uid) {
+              <div class="member-row">
+                <div class="member-avatar" [style.background]="member.avatarColor || '#0ea5a4'">
+                  {{ getInitials(member.displayName) }}
+                </div>
+                <span class="member-name">{{ member.displayName }}</span>
+                @if (member.role === 'admin') {
+                  <span class="role-badge">Admin</span>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  @if (showInviteModal()) {
+    <app-invite-modal
+      [circleId]="circle.id!"
+      (close)="showInviteModal.set(false)"
+    />
+  }
+}

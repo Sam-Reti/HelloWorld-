@@ -1,0 +1,26 @@
+<div class="modal-backdrop" (click)="onBackdropClick()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title">Invite Members</span>
+      <button class="modal-close" (click)="close.emit()">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      @for (user of (invitableUsers$ | async) ?? []; track user.uid) {
+        <div class="user-row">
+          <div class="user-avatar" [style.background]="user.avatarColor || '#0ea5a4'">
+            {{ getInitials(user.displayName) }}
+          </div>
+          <span class="user-name">{{ user.displayName }}</span>
+          @if (invitedSet.has(user.uid)) {
+            <span class="invited-label">Invited</span>
+          } @else {
+            <button class="invite-btn" (click)="invite(user)">Invite</button>
+          }
+        </div>
+      }
+      @if (((invitableUsers$ | async) ?? []).length === 0) {
+        <div class="empty">No users to invite. Follow people first!</div>
+      }
+    </div>
+  </div>
+</div>

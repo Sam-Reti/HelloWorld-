@@ -62,6 +62,21 @@ export const syncProfileToContent = functions.firestore
       writes.push({ ref: convoDoc.ref, data });
     }
 
+    // 4. Circle member docs — displayName + avatarColor
+    const circleMembersSnap = await db
+      .collectionGroup('members')
+      .where('uid', '==', uid)
+      .get();
+    for (const memberDoc of circleMembersSnap.docs) {
+      // Only update circle member docs (path: circles/{id}/members/{uid})
+      if (!memberDoc.ref.parent.parent?.parent.id) continue;
+      if (memberDoc.ref.parent.parent.parent.id !== 'circles') continue;
+      const data: Record<string, unknown> = {};
+      if (nameChanged) data['displayName'] = after['displayName'] ?? null;
+      if (colorChanged) data['avatarColor'] = after['avatarColor'] ?? null;
+      writes.push({ ref: memberDoc.ref, data });
+    }
+
     if (writes.length === 0) return null;
 
     // Commit in batches of 500 (Firestore limit per batch)
@@ -79,6 +94,27 @@ export const syncProfileToContent = functions.firestore
       colorChanged,
     });
 
+    return null;
+  });
+
+// Maintain memberCount on the circle whenever a member doc is created/deleted
+// and only count members with status === 'active'.
+export const onCircleMemberWrite = functions.firestore
+  .document('circles/{circleId}/members/{uid}')
+  .onWrite(async (change, context) => {
+    const circleId = context.params['circleId'] as string;
+    const beforeData = change.before.exists ? change.before.data() : null;
+    const afterData = change.after.exists ? change.after.data() : null;
+
+    const wasCounted = beforeData?.status === 'active';
+    const isCounted = afterData?.status === 'active';
+
+    if (wasCounted === isCounted) return null;
+
+    const delta = isCounted ? 1 : -1;
+    await admin.firestore().doc(`circles/${circleId}`).update({
+      memberCount: admin.firestore.FieldValue.increment(delta),
+    });
     return null;
   });
 
@@ -115,6 +151,33 @@ export const onFollowingWrite = functions.firestore
     });
     return null;
   });
+
+// Run once to repair circle memberCount values.
+export const repairCircleMemberCounts = functions.https.onCall(async (
+  _data: unknown,
+  context: functions.https.CallableContext,
+) => {
+  if (!context.auth) throw new functions.https.HttpsError('unauthenticated', 'Must be signed in');
+
+  const db = admin.firestore();
+  const circlesSnap = await db.collection('circles').get();
+
+  const results = await Promise.all(
+    circlesSnap.docs.map(async (circleDoc: admin.firestore.QueryDocumentSnapshot) => {
+      const circleId = circleDoc.id;
+      const membersSnap = await db
+        .collection(`circles/${circleId}/members`)
+        .where('status', '==', 'active')
+        .count()
+        .get();
+      const memberCount = membersSnap.data().count;
+      await db.doc(`circles/${circleId}`).update({ memberCount });
+      return { circleId, memberCount };
+    }),
+  );
+
+  return { repaired: results.length, circles: results };
+});
 
 // Run once to repair follower/following counts that drifted out of sync.
 // Call via: firebase functions:call repairFollowCounts (or HTTP GET with ?secret=...)

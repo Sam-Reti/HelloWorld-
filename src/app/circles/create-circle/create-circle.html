@@ -1,0 +1,75 @@
+<div class="create-page">
+  <h1 class="page-title">Create a Circle</h1>
+
+  <form class="form" (ngSubmit)="submit()">
+    <!-- Banner upload -->
+    <div class="banner-upload">
+      @if (bannerPreview) {
+        <div class="banner-preview" [style.backgroundImage]="'url(' + bannerPreview + ')'">
+          <button type="button" class="remove-banner" (click)="removeBanner()">Remove</button>
+        </div>
+      } @else {
+        <label class="banner-placeholder">
+          <span>Upload banner image</span>
+          <input type="file" accept="image/*" (change)="onBannerSelected($event)" hidden />
+        </label>
+      }
+    </div>
+
+    <label class="field">
+      <span class="label">Name</span>
+      <input
+        type="text"
+        [(ngModel)]="name"
+        name="name"
+        placeholder="Circle name"
+        maxlength="80"
+        required
+      />
+    </label>
+
+    <label class="field">
+      <span class="label">Description</span>
+      <textarea
+        [(ngModel)]="description"
+        name="description"
+        placeholder="What's this circle about?"
+        rows="3"
+        maxlength="500"
+      ></textarea>
+    </label>
+
+    <div class="field">
+      <span class="label">Visibility</span>
+      <div class="toggle-group">
+        <button
+          type="button"
+          class="toggle-btn"
+          [class.active]="visibility === 'public'"
+          (click)="visibility = 'public'"
+        >
+          Public
+        </button>
+        <button
+          type="button"
+          class="toggle-btn"
+          [class.active]="visibility === 'private'"
+          (click)="visibility = 'private'"
+        >
+          Private
+        </button>
+      </div>
+      <span class="hint">
+        @if (visibility === 'public') {
+          Anyone can find and join this circle.
+        } @else {
+          Members must be approved or invited.
+        }
+      </span>
+    </div>
+
+    <button class="submit-btn" type="submit" [disabled]="!name.trim() || submitting">
+      {{ submitting ? 'Creating...' : 'Create Circle' }}
+    </button>
+  </form>
+</div>

@@ -1,0 +1,100 @@
+<div class="circles-page">
+  <div class="page-header">
+    <h1 class="page-title">Circles</h1>
+    <a class="create-btn" routerLink="/app-home/circles/create">Create Circle</a>
+  </div>
+
+  <div class="search-bar">
+    <input
+      type="text"
+      placeholder="Search circles..."
+      [(ngModel)]="searchTerm"
+    />
+  </div>
+
+  <!-- My Circles -->
+  <section class="section">
+    <h2 class="section-title">My Circles</h2>
+    <div class="circle-grid">
+      @for (circle of filterCircles((myCircles$ | async) ?? []); track circle.id) {
+        <a class="circle-card" [routerLink]="['/app-home/circles', circle.id]">
+          @if (circle.bannerUrl) {
+            <div class="card-banner" [style.backgroundImage]="'url(' + circle.bannerUrl + ')'"></div>
+          } @else {
+            <div class="card-banner card-banner-default" [style.background]="circle.creatorAvatarColor || '#0ea5a4'">
+              <span class="banner-initials">{{ getInitials(circle.name) }}</span>
+            </div>
+          }
+          <div class="card-body">
+            <div class="card-name">{{ circle.name }}</div>
+            <div class="card-desc">{{ circle.description }}</div>
+            <div class="card-meta">
+              <span>{{ circle.memberCount }} member{{ circle.memberCount === 1 ? '' : 's' }}</span>
+              <span class="visibility-badge">{{ circle.visibility }}</span>
+            </div>
+          </div>
+        </a>
+      }
+    </div>
+    @if (((myCircles$ | async) ?? []).length === 0) {
+      <p class="empty">You haven't joined any circles yet.</p>
+    }
+  </section>
+
+  <!-- Invitations -->
+  @if (((invitedCircles$ | async) ?? []).length) {
+    <section class="section">
+      <h2 class="section-title">Invitations</h2>
+      <div class="circle-grid">
+        @for (circle of filterCircles((invitedCircles$ | async) ?? []); track circle.id) {
+          <a class="circle-card invited-card" [routerLink]="['/app-home/circles', circle.id]">
+            @if (circle.bannerUrl) {
+              <div class="card-banner" [style.backgroundImage]="'url(' + circle.bannerUrl + ')'"></div>
+            } @else {
+              <div class="card-banner card-banner-default" [style.background]="circle.creatorAvatarColor || '#0ea5a4'">
+                <span class="banner-initials">{{ getInitials(circle.name) }}</span>
+              </div>
+            }
+            <div class="card-body">
+              <div class="card-name">{{ circle.name }}</div>
+              <div class="card-desc">{{ circle.description }}</div>
+              <div class="card-meta">
+                <span>{{ circle.memberCount }} member{{ circle.memberCount === 1 ? '' : 's' }}</span>
+                <span class="invite-badge">Invited</span>
+              </div>
+            </div>
+          </a>
+        }
+      </div>
+    </section>
+  }
+
+  <!-- Discover -->
+  <section class="section">
+    <h2 class="section-title">Discover</h2>
+    <div class="circle-grid">
+      @for (circle of filterCircles((filteredPublic$ | async) ?? []); track circle.id) {
+        <a class="circle-card" [routerLink]="['/app-home/circles', circle.id]">
+          @if (circle.bannerUrl) {
+            <div class="card-banner" [style.backgroundImage]="'url(' + circle.bannerUrl + ')'"></div>
+          } @else {
+            <div class="card-banner card-banner-default" [style.background]="circle.creatorAvatarColor || '#0ea5a4'">
+              <span class="banner-initials">{{ getInitials(circle.name) }}</span>
+            </div>
+          }
+          <div class="card-body">
+            <div class="card-name">{{ circle.name }}</div>
+            <div class="card-desc">{{ circle.description }}</div>
+            <div class="card-meta">
+              <span>{{ circle.memberCount }} member{{ circle.memberCount === 1 ? '' : 's' }}</span>
+              <span class="visibility-badge">{{ circle.visibility }}</span>
+            </div>
+          </div>
+        </a>
+      }
+    </div>
+    @if (((filteredPublic$ | async) ?? []).length === 0) {
+      <p class="empty">No public circles to discover.</p>
+    }
+  </section>
+</div>

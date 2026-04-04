@@ -1,0 +1,129 @@
+<div class="circle-feed">
+  <!-- Composer -->
+  <div class="new-post">
+    <app-mention-textarea
+      [users]="allUsers"
+      [value]="text"
+      (valueChange)="text = $event"
+      (mentionedUids)="postMentionedUids = $event"
+      placeholder="Share something with the circle..."
+    ></app-mention-textarea>
+
+    @if (imagePreview()) {
+      <div class="image-preview-wrap">
+        <img class="image-preview-img" [src]="imagePreview()!" alt="Attachment preview" />
+        <button class="remove-image-btn" type="button" (click)="removeImage()" title="Remove image">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+    }
+
+    <div class="composer-actions">
+      <div class="hint">Use ``` for code blocks</div>
+      <div class="composer-right">
+        <input #imageInput type="file" accept="image/*" style="display:none" (change)="onImageSelect($event)" />
+        <button class="attach-image-btn" type="button" (click)="imageInput.click()" title="Attach image">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+          </svg>
+        </button>
+        <button class="post-btn" (click)="createPost()" [disabled]="!text.trim() && !selectedImage()">
+          Post
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Posts -->
+  @for (post of posts(); track post.id) {
+    <div class="post">
+      <div class="post-header">
+        <div class="author">
+          <div class="avatar" [style.background]="getAvatarColor(post)">
+            {{ getInitials(post.authorDisplayName || post.authorName) }}
+          </div>
+          <div class="meta">
+            <div class="name">{{ post.authorDisplayName || post.authorName || 'Anonymous' }}</div>
+            <div class="time">
+              {{ (post.createdAt?.toDate ? post.createdAt.toDate() : post.createdAt) | date: 'short' }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      @if (editingPostId === post.id) {
+        <div class="edit-post">
+          <textarea [(ngModel)]="editText" class="edit-textarea"></textarea>
+          <div class="edit-actions">
+            <button class="edit-save" (click)="saveEdit(post.id!)" [disabled]="!editText.trim()">Save</button>
+            <button class="edit-cancel" (click)="cancelEdit()">Cancel</button>
+          </div>
+        </div>
+      } @else {
+        <div class="post-text" [innerHTML]="post.text | markdown" appMentionLink></div>
+        @if (post.imageUrl) {
+          <img class="post-image" [src]="post.imageUrl" alt="Post image" loading="lazy" />
+        }
+      }
+
+      <div class="post-actions">
+        <button class="action" [class.liked]="isLiked(post.id!)" (click)="toggleLike(post.id!)">
+          👍 {{ post.likeCount || 0 }}
+        </button>
+        <button class="action" type="button" (click)="toggleComments(post.id!)">
+          Comments ({{ post.commentCount || 0 }})
+        </button>
+        @if (post.authorId === currentUid) {
+          <button class="action" type="button" (click)="startEdit(post)">Edit</button>
+          <button class="action danger" type="button" (click)="deletePost(post.id!)">Delete</button>
+        }
+      </div>
+
+      @if (showComments[post.id!]) {
+        <div class="comments">
+          <div class="comment-composer">
+            <app-mention-textarea
+              variant="input"
+              [users]="allUsers"
+              [value]="commentText[post.id!] || ''"
+              (valueChange)="commentText[post.id!] = $event"
+              (mentionedUids)="commentMentionedUids[post.id!] = $event"
+              (submitRequest)="submitComment(post.id!)"
+              placeholder="Write a comment..."
+            ></app-mention-textarea>
+            <button class="send" type="button" (click)="submitComment(post.id!)">Send</button>
+          </div>
+
+          <div class="comment-list">
+            @for (c of (getComments(post.id!) | async) ?? []; track c.id) {
+              <div class="comment">
+                <div class="comment-left">
+                  <div class="comment-avatar" [style.background]="getCommentAvatarColor(c)">
+                    {{ (c.authorName || 'A')[0] }}
+                  </div>
+                </div>
+                <div class="comment-body">
+                  <div class="comment-meta">
+                    <strong>{{ c.authorName || 'Anonymous' }}</strong>
+                    <span>
+                      {{ (c.createdAt?.toDate ? c.createdAt.toDate() : c.createdAt) | date: 'short' }}
+                    </span>
+                  </div>
+                  <div class="comment-text" [innerHTML]="c.text | mention" appMentionLink></div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  @if (posts().length === 0) {
+    <div class="empty-feed">
+      <p>No posts yet. Be the first to share something!</p>
+    </div>
+  }
+</div>

@@ -1,0 +1,35 @@
+@if (sessionService.activeSession(); as session) {
+  <div class="session-overlay">
+    <div class="session-header">
+      <span class="session-name">{{ session.circleName }}</span>
+    </div>
+    <div class="video-panel">
+      <hiyve-video-grid
+        [localUserName]="session.startedByName"
+        [layout]="'grid'"
+        [showNames]="true"
+        [colors]="{ background: '#0a0a14' }"
+      />
+    </div>
+    <div class="control-bar-wrap">
+      <hiyve-control-bar
+        [showAudioToggle]="true"
+        [showVideoToggle]="true"
+        [showSettings]="true"
+        [showLeaveButton]="true"
+        [showLeaveConfirmation]="false"
+        [colors]="controlBarColors"
+        [styles]="controlBarStyles"
+        (leave)="onLeave()"
+      />
+    </div>
+
+    @if (!sessionService.hasConnected()) {
+      <div class="connecting">
+        <div class="connecting-spinner"></div>
+        <p class="connecting-label">Joining {{ session.circleName }}...</p>
+        <button class="cancel-btn" (click)="onLeave()">Cancel</button>
+      </div>
+    }
+  </div>
+}

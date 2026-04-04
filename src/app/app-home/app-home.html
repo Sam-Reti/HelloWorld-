@@ -110,6 +110,18 @@
                 @if (n.type === 'follow') {
                   <div>👤 {{ n.actorName || 'Someone' }} followed you</div>
                 }
+                @if (n.type === 'mention') {
+                  <div>@ {{ n.actorName || 'Someone' }} mentioned you</div>
+                }
+                @if (n.type === 'circle_invite') {
+                  <div>{{ n.actorName || 'Someone' }} invited you to {{ n['circleName'] }}</div>
+                }
+                @if (n.type === 'circle_join_request') {
+                  <div>{{ n.actorName || 'Someone' }} requested to join {{ n['circleName'] }}</div>
+                }
+                @if (n.type === 'circle_session') {
+                  <div>A session started in {{ n['circleName'] }}</div>
+                }
               </div>
             }
             @if (((notifications$ | async) ?? []).length === 0) {
@@ -165,6 +177,13 @@
       >
       <a
         class="drawer-nav-item"
+        routerLink="circles"
+        routerLinkActive="active"
+        (click)="toggleMenu()"
+        >Circles</a
+      >
+      <a
+        class="drawer-nav-item"
         routerLink="practice"
         routerLinkActive="active"
         (click)="toggleMenu()"
@@ -190,14 +209,16 @@
           <a class="nav-item" routerLink="discover" routerLinkActive="active">Discover</a>
           <a class="nav-item" routerLink="following" routerLinkActive="active">Following</a>
           <a class="nav-item" routerLink="messages" routerLinkActive="active">Messages</a>
+          <a class="nav-item" routerLink="circles" routerLinkActive="active">Circles</a>
           <a class="nav-item" routerLink="practice" routerLinkActive="active">Practice Room</a>
           <a class="nav-item" routerLink="profile" routerLinkActive="active">Profile</a>
         </nav>
       </div>
+      <app-practice-sidebar />
       <div class="right-inline">
         @if (isNarrow()) {
           <app-chat-sidebar />
-          <app-practice-sidebar />
+          <app-circles-sidebar />
         }
       </div>
     </aside>
@@ -211,7 +232,7 @@
     <aside class="right">
       @if (!isNarrow()) {
         <app-chat-sidebar />
-        <app-practice-sidebar />
+        <app-circles-sidebar />
       }
     </aside>
   </main>
@@ -222,4 +243,5 @@
   <!-- Video call components — position:fixed, rendered outside the layout grid -->
   <app-incoming-call-banner />
   <app-video-call-overlay />
+  <app-circle-session-overlay />
 </div>

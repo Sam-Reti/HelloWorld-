@@ -1,0 +1,49 @@
+<div class="sidebar-card">
+  <div class="sidebar-header">
+    <div class="sidebar-title">Circles</div>
+    <a class="new-circle-btn" routerLink="/app-home/circles/create">+ New</a>
+  </div>
+
+  <div class="circle-list">
+    @for (circle of (circlesWithSessions$ | async) ?? []; track circle.id) {
+      <a
+        class="circle-row"
+        [class.has-session]="circle.activeSession"
+        [routerLink]="['/app-home/circles', circle.id]"
+      >
+        <div class="circle-avatar-wrap">
+          <div
+            class="circle-avatar"
+            [style.background]="circle.creatorAvatarColor || '#0ea5a4'"
+          >
+            {{ getInitials(circle.name) }}
+          </div>
+          @if (circle.activeSession) {
+            <span class="live-dot"></span>
+          }
+        </div>
+        <div class="circle-info">
+          <div class="circle-name">{{ circle.name }}</div>
+          <div class="circle-meta">
+            {{ circle.memberCount }} member{{ circle.memberCount === 1 ? '' : 's' }}
+          </div>
+        </div>
+        @if (circle.activeSession) {
+          <button
+            class="join-session-btn"
+            type="button"
+            (click)="joinSession(circle.activeSession, $event)"
+          >
+            Join
+          </button>
+        }
+      </a>
+    }
+    @if (((circlesWithSessions$ | async) ?? []).length === 0) {
+      <div class="empty">
+        No circles yet.
+        <a routerLink="/app-home/circles">Discover circles</a>
+      </div>
+    }
+  </div>
+</div>

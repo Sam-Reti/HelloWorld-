@@ -217,6 +217,18 @@
   align-items: stretch;
 }
 
+/* Left sidebar */
+.left {
+  min-height: 0;
+  min-width: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
 /* Left card */
 .card {
   background: var(--bg-card);

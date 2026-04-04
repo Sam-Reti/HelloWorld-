@@ -104,7 +104,13 @@ service cloud.firestore {
         allow create: if isAuth()
           && request.resource.data.keys().hasAll(['type', 'actorId', 'createdAt'])
           && request.resource.data.actorId == request.auth.uid
-          && request.resource.data.type in ['like', 'comment', 'follow'];
+          && request.resource.data.type in ['like', 'comment', 'follow', 'mention',
+                                             'circle_invite', 'circle_join_request', 'circle_session'];
+      }
+
+      // Interview prep progress: only the owner manages their progress
+      match /interviewProgress/{questionId} {
+        allow read, write: if isAuth() && isOwner(userId);
       }
 
       // Following: only the owner manages who they follow
@@ -125,6 +131,11 @@ service cloud.firestore {
         return request.auth.uid == resource.data.callerId
             || request.auth.uid == resource.data.calleeId;
       }
+      function isCallParticipant() {
+        let call = get(/databases/$(database)/documents/calls/$(callId)).data;
+        return request.auth.uid == call.callerId
+            || request.auth.uid == call.calleeId;
+      }
       allow read: if isAuth() && isParticipant();
       allow create: if isAuth()
         && request.resource.data.callerId == request.auth.uid
@@ -133,6 +144,78 @@ service cloud.firestore {
       allow update: if isAuth() && isParticipant()
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']);
       allow delete: if isAuth() && isParticipant();
+
+      // Shared code editor state — both call participants can read/write
+      match /sharedEditor/{docId} {
+        allow read, write: if isAuth() && isCallParticipant();
+      }
+    }
+
+    // Circles
+    match /circles/{circleId} {
+      allow read: if isAuth();
+      allow create: if isAuth()
+        && request.resource.data.creatorId == request.auth.uid;
+      allow update: if isAuth()
+        && get(/databases/$(database)/documents/circles/$(circleId)/members/$(request.auth.uid)).data.role == 'admin';
+      allow delete: if isAuth()
+        && resource.data.creatorId == request.auth.uid;
+
+      match /members/{uid} {
+        allow read: if isAuth();
+        // Self-join or admin-invite
+        allow create: if isAuth()
+          && (uid == request.auth.uid
+              || get(/databases/$(database)/documents/circles/$(circleId)/members/$(request.auth.uid)).data.role == 'admin');
+        // Admin or self can update/delete
+        allow update, delete: if isAuth()
+          && (uid == request.auth.uid
+              || get(/databases/$(database)/documents/circles/$(circleId)/members/$(request.auth.uid)).data.role == 'admin');
+      }
+
+      match /posts/{postId} {
+        allow read: if isAuth();
+        allow create: if isAuth()
+          && request.resource.data.authorId == request.auth.uid;
+        allow update: if isAuth() && (
+          isOwner(resource.data.authorId) ||
+          (
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likeCount', 'commentCount'])
+            && (
+              !request.resource.data.diff(resource.data).affectedKeys().hasAny(['likeCount'])    || changedByOne('likeCount')
+            )
+            && (
+              !request.resource.data.diff(resource.data).affectedKeys().hasAny(['commentCount']) || changedByOne('commentCount')
+            )
+          )
+        );
+        allow delete: if isAuth() && isOwner(resource.data.authorId);
+
+        match /likes/{likeId} {
+          allow read: if isAuth();
+          allow write: if isAuth() && likeId == request.auth.uid;
+        }
+
+        match /comments/{commentId} {
+          allow read: if isAuth();
+          allow create: if isAuth() && request.resource.data.authorId == request.auth.uid;
+          allow delete: if isAuth() && isOwner(resource.data.authorId);
+          allow update: if false;
+        }
+      }
+    }
+
+    // Collection group query on circle members (used by getMyCircles$)
+    match /{path=**}/members/{uid} {
+      allow read: if isAuth();
+    }
+
+    // Circle live sessions
+    match /circleSessions/{sessionId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update: if isAuth();
+      allow delete: if isAuth();
     }
 
     // Practice sessions — private per user, immutable after creation
@@ -143,7 +226,7 @@ service cloud.firestore {
         && request.resource.data.score is number
         && request.resource.data.score >= 0
         && request.resource.data.score <= 100
-        && request.resource.data.level in ['Easy', 'Medium', 'Hard'];
+        && (!request.resource.data.keys().hasAny(['level']) || request.resource.data.level in ['Easy', 'Medium', 'Hard']);
       allow update, delete: if false;
     }
   }
