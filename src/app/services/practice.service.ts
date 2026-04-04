@@ -1,7 +1,16 @@
 import { Injectable, inject } from '@angular/core';
 import { FirebaseApp } from '@angular/fire/app';
 import { Auth } from '@angular/fire/auth';
-import { Firestore, collection, addDoc, serverTimestamp } from '@angular/fire/firestore';
+import {
+  Firestore,
+  collection,
+  addDoc,
+  serverTimestamp,
+  doc,
+  getDoc,
+  setDoc,
+  getDocs,
+} from '@angular/fire/firestore';
 import { getAI, getGenerativeModel, GoogleAIBackend } from 'firebase/ai';
 import {
   PracticeLanguage,
@@ -11,6 +20,7 @@ import {
   GradePayload,
   PracticeSession,
 } from '../practice/practice.models';
+import { InterviewProgress } from '../practice/interview-prep/interview-prep.models';
 
 function parseJson<T>(raw: string): T {
   const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
@@ -198,5 +208,55 @@ Respond with ONLY valid JSON (no markdown fences), in this shape:
       uid: user.uid,
       createdAt: serverTimestamp(),
     });
+  }
+
+  async loadInterviewProgress(): Promise<Map<string, InterviewProgress>> {
+    const user = this.auth.currentUser;
+    if (!user) return new Map();
+
+    const colRef = collection(this.firestore, `users/${user.uid}/interviewProgress`);
+    const snapshot = await getDocs(colRef);
+    const map = new Map<string, InterviewProgress>();
+    snapshot.forEach((d) => map.set(d.id, d.data() as InterviewProgress));
+    return map;
+  }
+
+  async saveInterviewProgress(
+    questionId: string,
+    score: number,
+    grade: string,
+  ): Promise<void> {
+    const user = this.auth.currentUser;
+    if (!user) throw new Error('Not authenticated');
+
+    const docRef = doc(this.firestore, `users/${user.uid}/interviewProgress/${questionId}`);
+    const snap = await getDoc(docRef);
+
+    if (snap.exists()) {
+      const existing = snap.data() as InterviewProgress;
+      if (score > existing.bestScore) {
+        await setDoc(docRef, {
+          questionId,
+          bestScore: score,
+          bestGrade: grade,
+          attempts: existing.attempts + 1,
+          lastAttemptAt: serverTimestamp(),
+        });
+      } else {
+        await setDoc(docRef, {
+          ...existing,
+          attempts: existing.attempts + 1,
+          lastAttemptAt: serverTimestamp(),
+        });
+      }
+    } else {
+      await setDoc(docRef, {
+        questionId,
+        bestScore: score,
+        bestGrade: grade,
+        attempts: 1,
+        lastAttemptAt: serverTimestamp(),
+      });
+    }
   }
 }

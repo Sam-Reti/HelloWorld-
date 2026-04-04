@@ -7,6 +7,7 @@ import { ChatService, Conversation } from '../services/chat.service';
 import { ChatPopupService } from '../services/chat-popup.service';
 import { FollowService, PublicUser } from '../services/follow.service';
 import { PresenceService } from '../services/presence.service';
+import { VideoCallService } from '../video-call/video-call.service';
 
 @Component({
   selector: 'app-chat-sidebar',
@@ -22,6 +23,7 @@ export class ChatSidebar {
   private auth = inject(Auth);
 
   private presenceService = inject(PresenceService);
+  private videoCallService = inject(VideoCallService);
 
   currentUid = this.auth.currentUser?.uid ?? '';
   private onlineSnapshot = new Set<string>();
@@ -100,6 +102,13 @@ export class ChatSidebar {
 
   toggleNewChat(): void {
     this.newChatOpen = !this.newChatOpen;
+  }
+
+  startCall(convo: Conversation, event: Event): void {
+    event.stopPropagation();
+    const otherUid = this.getOtherUid(convo);
+    const name = this.getOtherName(convo);
+    if (otherUid) this.videoCallService.initiateCall(otherUid, name);
   }
 
   async startChat(user: PublicUser): Promise<void> {

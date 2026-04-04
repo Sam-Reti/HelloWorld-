@@ -15,12 +15,14 @@ import { PostService } from '../services/postservice';
 import { AsyncPipe, DatePipe } from '@angular/common';
 import { CommonModule } from '@angular/common';
 import { MarkdownPipe } from '../pipes/markdown.pipe';
+import { MentionPipe } from '../pipes/mention.pipe';
 import { Auth } from '@angular/fire/auth';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ScrollService } from '../services/scroll.service';
-import { FollowService } from '../services/follow.service';
-import { map } from 'rxjs';
+import { FollowService, PublicUser } from '../services/follow.service';
 import { Post } from '../services/postservice';
+import { MentionTextareaComponent } from '../shared/mentions/mention-textarea';
+import { MentionLinkDirective } from '../shared/mentions/mention-link.directive';
 import { PracticePostCardComponent } from '../practice/practice-post-card/practice-post-card';
 import { CodePostCardComponent } from '../code-post-card/code-post-card';
 import { QueryDocumentSnapshot, DocumentData, getDoc, doc } from 'firebase/firestore';
@@ -38,6 +40,9 @@ const PAGE_SIZE = 30;
     CommonModule,
     RouterLink,
     MarkdownPipe,
+    MentionPipe,
+    MentionTextareaComponent,
+    MentionLinkDirective,
     PracticePostCardComponent,
     CodePostCardComponent,
   ],
@@ -68,6 +73,9 @@ export class Feed implements OnInit, AfterViewInit {
   private cursors: (QueryDocumentSnapshot<DocumentData> | null)[] = [];
 
   userColors: Record<string, string> = {};
+  allUsers: PublicUser[] = [];
+  postMentionedUids: string[] = [];
+  commentMentionedUids: Record<string, string[]> = {};
 
   constructor(
     private postService: PostService,
@@ -95,16 +103,12 @@ export class Feed implements OnInit, AfterViewInit {
   ngOnInit() {
     this.followService
       .getAllUsers$()
-      .pipe(
-        map((users) => {
-          const colors: Record<string, string> = {};
-          for (const u of users) if (u.avatarColor) colors[u.uid] = u.avatarColor;
-          return colors;
-        }),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe((c) => {
-        this.userColors = c;
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((users) => {
+        this.allUsers = users;
+        const colors: Record<string, string> = {};
+        for (const u of users) if (u.avatarColor) colors[u.uid] = u.avatarColor;
+        this.userColors = colors;
         this.cdr.markForCheck();
       });
 
@@ -183,8 +187,9 @@ export class Feed implements OnInit, AfterViewInit {
 
   async createPost() {
     try {
-      await this.postService.createPost(this.text, this.selectedImage());
+      await this.postService.createPost(this.text, this.selectedImage(), this.postMentionedUids);
       this.text = '';
+      this.postMentionedUids = [];
       this.clearImage();
       this.resetAndLoad();
     } catch (e) {
@@ -282,9 +287,11 @@ export class Feed implements OnInit, AfterViewInit {
   async submitComment(postId: string) {
     const text = (this.commentText[postId] ?? '').trim();
     if (!text) return;
+    const uids = this.commentMentionedUids[postId] ?? [];
     this.commentText[postId] = '';
+    this.commentMentionedUids[postId] = [];
     try {
-      await this.postService.addComment(postId, text);
+      await this.postService.addComment(postId, text, uids);
     } catch (e) {
       this.commentText[postId] = text;
       throw e;

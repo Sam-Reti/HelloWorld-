@@ -1,0 +1,46 @@
+<div class="mention-wrap">
+  @if (variant === 'textarea') {
+    <textarea
+      #inputEl
+      [rows]="rows"
+      [placeholder]="placeholder"
+      [value]="value"
+      (input)="onInput($event)"
+      (keydown)="onKeydown($event)"
+      (blur)="onBlur()"
+    ></textarea>
+  } @else {
+    <input
+      #inputEl
+      type="text"
+      [placeholder]="placeholder"
+      [value]="value"
+      (input)="onInput($event)"
+      (keydown)="onKeydown($event)"
+      (blur)="onBlur()"
+    />
+  }
+</div>
+
+@if (showDropdown && filteredUsers.length > 0) {
+  <div class="mention-dropdown" [ngStyle]="dropdownStyle">
+    @for (user of filteredUsers; track user.uid; let i = $index) {
+      <div
+        class="mention-option"
+        [class.active]="i === activeIndex"
+        (mousedown)="$event.preventDefault(); selectUser(user)"
+        (mouseenter)="activeIndex = i"
+      >
+        <div class="mention-avatar" [style.background]="user.avatarColor || '#0ea5a4'">
+          {{ (user.displayName || 'U')[0] }}
+        </div>
+        <div class="mention-info">
+          <span class="mention-name">{{ user.displayName }}</span>
+          @if (user.role) {
+            <span class="mention-role">{{ user.role }}</span>
+          }
+        </div>
+      </div>
+    }
+  </div>
+}

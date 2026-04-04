@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, HostListener, inject, signal, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Auth } from '@angular/fire/auth';
@@ -6,7 +6,13 @@ import { PracticeService } from '../services/practice.service';
 import { PostService } from '../services/postservice';
 import { ScrollService } from '../services/scroll.service';
 import { CodeEditorComponent } from './code-editor/code-editor';
+import { CodeRunnerService } from '../shared/code-runner/code-runner.service';
+import { ConsoleOutputComponent } from '../shared/code-runner/console-output';
+import { ConsoleEntry } from '../shared/code-runner/code-runner.models';
 import { MarkdownPipe } from '../pipes/markdown.pipe';
+import { InterviewPrepComponent } from './interview-prep/interview-prep';
+import { InterviewQuestion, InterviewProgress } from './interview-prep/interview-prep.models';
+import { INTERVIEW_QUESTIONS } from './interview-prep/interview-questions';
 import {
   PracticeLanguage,
   PracticeCategory,
@@ -42,7 +48,7 @@ const LEVELS: PracticeLevel[] = ['Easy', 'Medium', 'Hard'];
 @Component({
   selector: 'app-practice',
   standalone: true,
-  imports: [CodeEditorComponent, FormsModule, MarkdownPipe],
+  imports: [CodeEditorComponent, ConsoleOutputComponent, InterviewPrepComponent, FormsModule, MarkdownPipe],
   templateUrl: './practice.html',
   styleUrl: './practice.css',
 })
@@ -52,15 +58,21 @@ export class PracticeComponent {
   private auth = inject(Auth);
   private router = inject(Router);
   private scrollService = inject(ScrollService);
+  private codeRunner = inject(CodeRunnerService);
 
   readonly languages = LANGUAGES;
   readonly categories = CATEGORIES;
   readonly levels = LEVELS;
+  readonly interviewQuestions = INTERVIEW_QUESTIONS;
+
+  activeTab = signal<'practice' | 'interview'>('practice');
+  interviewProgress = signal<Map<string, InterviewProgress>>(new Map());
+  selectedQuestion = signal<InterviewQuestion | null>(null);
 
   state = signal<PracticeState>('selecting');
   errorMessage = signal('');
   selectedMode = signal<PracticeMode>('fix');
-  selectedLanguage = signal<PracticeLanguage>('Python');
+  selectedLanguage = signal<PracticeLanguage>('JavaScript');
   selectedCategory = signal<PracticeCategory>('Logic Bugs');
   selectedLevel = signal<PracticeLevel>('Medium');
   challenge = signal<ChallengePayload | null>(null);
@@ -77,6 +89,42 @@ export class PracticeComponent {
   sharingScratch = signal(false);
   showCompose = signal<'practice' | 'scratch' | null>(null);
   captionText = signal('');
+
+  scratchFullscreen = signal(false);
+  scratchConsoleEntries = signal<ConsoleEntry[]>([]);
+  scratchRunning = signal(false);
+  scratchDividerPos = signal(50);
+  private dragging = false;
+
+  @ViewChild('scratchEditor') scratchEditor?: CodeEditorComponent;
+
+  async switchToInterview() {
+    this.activeTab.set('interview');
+    this.state.set('selecting');
+    await this.loadInterviewProgress();
+  }
+
+  switchToPractice() {
+    this.activeTab.set('practice');
+    this.state.set('selecting');
+  }
+
+  private async loadInterviewProgress() {
+    try {
+      const progress = await this.practiceService.loadInterviewProgress();
+      this.interviewProgress.set(progress);
+    } catch {
+      // silently fail — progress just won't show
+    }
+  }
+
+  async onQuestionSelected(question: InterviewQuestion) {
+    this.selectedQuestion.set(question);
+    this.selectedMode.set('interview');
+    this.challenge.set({ code: '', description: question.description });
+    this.submission.set('');
+    this.state.set('coding');
+  }
 
   async generateChallenge() {
     this.errorMessage.set('');
@@ -129,10 +177,10 @@ export class PracticeComponent {
     this.state.set('grading');
     try {
       const mode = this.selectedMode();
-      const grade = mode === 'build' || mode === 'prompt'
+      const grade = mode === 'build' || mode === 'prompt' || mode === 'interview'
         ? await this.practiceService.gradeBuildSubmission(
             this.selectedLanguage(),
-            mode === 'prompt' ? undefined : this.selectedCategory(),
+            mode === 'prompt' || mode === 'interview' ? undefined : this.selectedCategory(),
             ch.description,
             this.submission(),
           )
@@ -146,13 +194,18 @@ export class PracticeComponent {
 
       const user = this.auth.currentUser;
       if (user) {
-        const isPrompt = this.selectedMode() === 'prompt';
+        const isPrompt = mode === 'prompt';
+        const isInterview = mode === 'interview';
+        const question = this.selectedQuestion();
         await this.practiceService.saveSession({
           uid: user.uid,
-          mode: this.selectedMode(),
+          mode,
           language: this.selectedLanguage(),
-          ...(isPrompt ? {} : { category: this.selectedCategory(), level: this.selectedLevel() }),
+          ...(isPrompt || isInterview
+            ? {}
+            : { category: this.selectedCategory(), level: this.selectedLevel() }),
           ...(isPrompt ? { customPrompt: this.customPrompt() } : {}),
+          ...(isInterview && question ? { interviewQuestionId: question.id } : {}),
           challenge: ch.code,
           challengeDescription: ch.description,
           submission: this.submission(),
@@ -161,6 +214,15 @@ export class PracticeComponent {
           feedback: grade.feedback,
           correctedCode: grade.correctedCode,
         });
+
+        if (isInterview && question) {
+          await this.practiceService.saveInterviewProgress(
+            question.id,
+            grade.score,
+            grade.grade,
+          );
+          await this.loadInterviewProgress();
+        }
       }
 
       this.state.set('result');
@@ -195,11 +257,13 @@ export class PracticeComponent {
     this.sharing.set(true);
     this.showCompose.set(null);
     try {
+      const question = this.selectedQuestion();
+      const isInterview = this.selectedMode() === 'interview';
       const postId = await this.postService.createPracticePost(
         {
           language: this.selectedLanguage(),
-          category: this.selectedCategory(),
-          level: this.selectedLevel(),
+          category: isInterview && question ? question.category : this.selectedCategory(),
+          level: isInterview && question ? question.difficulty : this.selectedLevel(),
           score: gr.score,
           grade: gr.grade,
           feedback: gr.feedback,
@@ -207,6 +271,9 @@ export class PracticeComponent {
           description: ch.description,
           submission: this.submission(),
           correctedCode: gr.correctedCode,
+          ...(isInterview && question
+            ? { interviewQuestionTitle: question.title }
+            : {}),
         },
         this.captionText().trim(),
       );
@@ -244,6 +311,53 @@ export class PracticeComponent {
     }
   }
 
+  @HostListener('window:keydown.escape')
+  onEscapeKey() {
+    if (this.scratchFullscreen()) {
+      this.scratchFullscreen.set(false);
+    }
+  }
+
+  toggleScratchFullscreen() {
+    this.scratchFullscreen.update((v) => !v);
+  }
+
+  get canRunScratch(): boolean {
+    const lang = this.selectedLanguage();
+    return lang === 'JavaScript' || lang === 'TypeScript';
+  }
+
+  async runScratchCode(): Promise<void> {
+    if (!this.canRunScratch || this.scratchRunning()) return;
+    this.scratchRunning.set(true);
+    this.scratchConsoleEntries.set([]);
+    const code = this.scratchEditor?.getCode() ?? this.scratchCode();
+    const entries = await this.codeRunner.run(code, this.selectedLanguage() === 'TypeScript');
+    this.scratchConsoleEntries.set(entries);
+    this.scratchRunning.set(false);
+  }
+
+  clearScratchConsole() {
+    this.scratchConsoleEntries.set([]);
+  }
+
+  onDividerDown(event: MouseEvent) {
+    event.preventDefault();
+    this.dragging = true;
+  }
+
+  onDividerMove(event: MouseEvent) {
+    if (!this.dragging) return;
+    const container = (event.currentTarget as HTMLElement);
+    const rect = container.getBoundingClientRect();
+    const pct = ((event.clientX - rect.left) / rect.width) * 100;
+    this.scratchDividerPos.set(Math.min(85, Math.max(15, pct)));
+  }
+
+  onDividerUp() {
+    this.dragging = false;
+  }
+
   reset() {
     this.challenge.set(null);
     this.submission.set('');
@@ -253,6 +367,7 @@ export class PracticeComponent {
     this.sharing.set(false);
     this.shared.set(false);
     this.customPrompt.set('');
+    this.selectedQuestion.set(null);
     this.state.set('selecting');
   }
 

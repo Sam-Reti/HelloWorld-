@@ -1,0 +1,23 @@
+<div class="modal-backdrop" (click)="onDismiss()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <h2 class="modal-title">Share Your Code</h2>
+    <p class="modal-subtitle">{{ language() }} — from your call session</p>
+    <pre class="code-preview"><code>{{ code() }}</code></pre>
+    <textarea
+      class="caption-input"
+      placeholder="Add a caption (optional)"
+      [ngModel]="caption()"
+      (ngModelChange)="caption.set($event)"
+      rows="2"
+    ></textarea>
+    @if (error()) {
+      <p class="error-text">{{ error() }}</p>
+    }
+    <div class="modal-actions">
+      <button class="share-btn" (click)="shareInFeed()" [disabled]="sharing()">
+        {{ sharing() ? 'Sharing...' : 'Share in Feed' }}
+      </button>
+      <button class="dismiss-btn" (click)="onDismiss()" [disabled]="sharing()">Dismiss</button>
+    </div>
+  </div>
+</div>

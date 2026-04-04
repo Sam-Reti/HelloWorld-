@@ -216,6 +216,11 @@ service cloud.firestore {
       allow create: if isAuth();
       allow update: if isAuth();
       allow delete: if isAuth();
+
+      // Shared code editor state — any authed user in the session can read/write
+      match /sharedEditor/{docId} {
+        allow read, write: if isAuth();
+      }
     }
 
     // Practice sessions — private per user, immutable after creation

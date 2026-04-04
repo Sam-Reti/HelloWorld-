@@ -6,7 +6,8 @@ import { ChatService, Conversation } from '../services/chat.service';
 import { ChatPopupService } from '../services/chat-popup.service';
 import { FollowService } from '../services/follow.service';
 import { PresenceService } from '../services/presence.service';
-import { of } from 'rxjs';
+import { VideoCallService } from '../video-call/video-call.service';
+import { of, BehaviorSubject } from 'rxjs';
 
 import { Auth, authState } from '@angular/fire/auth';
 import { Firestore } from '@angular/fire/firestore';
@@ -50,6 +51,13 @@ describe('ChatSidebar', () => {
           },
         },
         { provide: PresenceService, useValue: { onlineUsers$: of(new Set(['other-uid'])) } },
+        {
+          provide: VideoCallService,
+          useValue: {
+            initiateCall: vi.fn(),
+            isInRoom$: new BehaviorSubject(false),
+          },
+        },
       ],
       schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();

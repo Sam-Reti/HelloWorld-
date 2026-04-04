@@ -1,0 +1,105 @@
+.shared-editor {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #0d1117;
+}
+
+.editor-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.language-select {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  outline: none;
+}
+
+.language-select:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.language-select option {
+  background: #1a1a2e;
+  color: #fff;
+}
+
+.run-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: none;
+  background: #22c55e;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.run-btn:hover:not(:disabled) {
+  background: #16a34a;
+}
+
+.run-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.run-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.close-btn {
+  margin-left: auto;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.editor-host {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+/* CodeMirror overrides for dark theme */
+.editor-host :deep(.cm-editor) {
+  height: 100%;
+}
+
+.editor-host :deep(.cm-scroller) {
+  overflow: auto;
+}

@@ -9,6 +9,9 @@ import {
   OnDestroy,
   ViewChild,
   SimpleChanges,
+  inject,
+  signal,
+  HostListener,
 } from '@angular/core';
 import { EditorView, basicSetup } from 'codemirror';
 import { EditorState } from '@codemirror/state';
@@ -22,19 +25,30 @@ import { StreamLanguage } from '@codemirror/language';
 import { go } from '@codemirror/legacy-modes/mode/go';
 import { csharp } from '@codemirror/legacy-modes/mode/clike';
 import { PracticeLanguage } from '../practice.models';
+import { CodeRunnerService } from '../../shared/code-runner/code-runner.service';
+import { ConsoleOutputComponent } from '../../shared/code-runner/console-output';
+import { ConsoleEntry } from '../../shared/code-runner/code-runner.models';
 
 @Component({
   selector: 'app-code-editor',
   standalone: true,
+  imports: [ConsoleOutputComponent],
   templateUrl: './code-editor.html',
   styleUrl: './code-editor.css',
+  host: { '[class.fill-height]': 'fillHeight' },
 })
 export class CodeEditorComponent implements OnInit, OnChanges, OnDestroy {
   @ViewChild('editorHost', { static: true }) editorHost!: ElementRef<HTMLDivElement>;
   @Input() language: PracticeLanguage = 'JavaScript';
   @Input() initialCode = '';
   @Input() readonly = false;
+  @Input() showRun = false;
+  @Input() fillHeight = false;
   @Output() codeChange = new EventEmitter<string>();
+
+  private codeRunner = inject(CodeRunnerService);
+  consoleEntries = signal<ConsoleEntry[]>([]);
+  running = signal(false);
 
   private view?: EditorView;
 
@@ -53,6 +67,33 @@ export class CodeEditorComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnDestroy() {
     this.view?.destroy();
+  }
+
+  get canRun(): boolean {
+    return this.showRun && (this.language === 'JavaScript' || this.language === 'TypeScript');
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  handleKeydown(event: KeyboardEvent): void {
+    if (!this.canRun) return;
+    if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+      event.preventDefault();
+      this.runCode();
+    }
+  }
+
+  async runCode(): Promise<void> {
+    if (!this.canRun || this.running()) return;
+    this.running.set(true);
+    this.consoleEntries.set([]);
+    const code = this.getCode();
+    const entries = await this.codeRunner.run(code, this.language === 'TypeScript');
+    this.consoleEntries.set(entries);
+    this.running.set(false);
+  }
+
+  clearConsole(): void {
+    this.consoleEntries.set([]);
   }
 
   getCode(): string {

@@ -1,10 +1,13 @@
 <div class="feed-wrapper">
   <div class="hider">
     <div class="new-post">
-      <textarea
-        [(ngModel)]="text"
+      <app-mention-textarea
+        [users]="allUsers"
+        [value]="text"
+        (valueChange)="text = $event"
+        (mentionedUids)="postMentionedUids = $event"
         placeholder="Post a question, share a win, or drop a snippet"
-      ></textarea>
+      ></app-mention-textarea>
 
       @if (imagePreview()) {
         <div class="image-preview-wrap">
@@ -73,7 +76,7 @@
       } @else if (post.type === 'code') {
         <app-code-post-card [post]="post" />
       } @else if (editingPostId !== post.id) {
-        <div class="post-text" [innerHTML]="post.text | markdown"></div>
+        <div class="post-text" [innerHTML]="post.text | markdown" appMentionLink></div>
         @if (post.imageUrl) {
           <img class="post-image" [src]="post.imageUrl" alt="Post image" loading="lazy" />
         }
@@ -98,7 +101,15 @@
       @if (showComments[post.id!]) {
         <div class="comments">
           <div class="comment-composer">
-            <input [(ngModel)]="commentText[post.id!]" placeholder="Write a comment..." />
+            <app-mention-textarea
+              variant="input"
+              [users]="allUsers"
+              [value]="commentText[post.id!] || ''"
+              (valueChange)="commentText[post.id!] = $event"
+              (mentionedUids)="commentMentionedUids[post.id!] = $event"
+              (submitRequest)="submitComment(post.id!)"
+              placeholder="Write a comment..."
+            ></app-mention-textarea>
             <button class="send" type="button" (click)="submitComment(post.id!)">Send</button>
           </div>
 
@@ -120,7 +131,7 @@
                       }}
                     </span>
                   </div>
-                  <div class="comment-text">{{ c.text }}</div>
+                  <div class="comment-text" [innerHTML]="c.text | mention" appMentionLink></div>
                 </div>
               </div>
             }

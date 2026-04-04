@@ -18,7 +18,7 @@ export type PracticeCategory =
 
 export type PracticeLevel = 'Easy' | 'Medium' | 'Hard';
 
-export type PracticeMode = 'fix' | 'build' | 'prompt';
+export type PracticeMode = 'fix' | 'build' | 'prompt' | 'interview';
 
 export type PracticeState = 'selecting' | 'loading' | 'coding' | 'grading' | 'result';
 
@@ -41,6 +41,7 @@ export interface PracticeSession {
   category?: PracticeCategory;
   level?: PracticeLevel;
   customPrompt?: string;
+  interviewQuestionId?: string;
   challenge: string;
   challengeDescription: string;
   submission: string;

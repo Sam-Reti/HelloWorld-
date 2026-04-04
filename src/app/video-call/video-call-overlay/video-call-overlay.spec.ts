@@ -3,6 +3,9 @@ import { NO_ERRORS_SCHEMA, DestroyRef } from '@angular/core';
 import { VideoCallOverlayComponent } from './video-call-overlay';
 import { VideoCallService } from '../video-call.service';
 import { BehaviorSubject } from 'rxjs';
+import { Auth } from '@angular/fire/auth';
+import { Firestore } from '@angular/fire/firestore';
+import { provideFirebaseMocks } from '../../../testing/firebase-mocks';
 
 describe('VideoCallOverlayComponent', () => {
   let component: VideoCallOverlayComponent;
@@ -13,6 +16,7 @@ describe('VideoCallOverlayComponent', () => {
     await TestBed.configureTestingModule({
       imports: [VideoCallOverlayComponent],
       providers: [
+        ...provideFirebaseMocks({ Auth, Firestore }),
         {
           provide: VideoCallService,
           useValue: {

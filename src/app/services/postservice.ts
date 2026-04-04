@@ -30,6 +30,7 @@ export type Post = {
   authorDisplayName?: string | null;
   authorAvatarColor?: string | null;
   imageUrl?: string | null;
+  mentionedUids?: string[];
   type?: 'practice' | 'code';
   codeLanguage?: string;
   codeContent?: string;
@@ -56,6 +57,7 @@ export type PracticeShareData = {
   description: string;
   submission: string;
   correctedCode: string;
+  interviewQuestionTitle?: string;
 };
 
 export type Comment = {
@@ -65,6 +67,7 @@ export type Comment = {
   authorName: string | null;
   createdAt: any;
   authorAvatarColor?: string | null;
+  mentionedUids?: string[];
 };
 
 @Injectable({
@@ -75,7 +78,11 @@ export class PostService {
   private auth = inject(Auth);
   private storage = inject(Storage);
 
-  async createPost(text: string, imageFile?: File | null): Promise<string> {
+  async createPost(
+    text: string,
+    imageFile?: File | null,
+    mentionedUids?: string[],
+  ): Promise<string> {
     const user = this.auth.currentUser;
     if (!user) throw new Error('Not authenticated');
 
@@ -106,7 +113,13 @@ export class PostService {
       likeCount: 0,
       commentCount: 0,
       ...(imageUrl ? { imageUrl } : {}),
+      ...(mentionedUids?.length ? { mentionedUids } : {}),
     });
+
+    if (mentionedUids?.length) {
+      this.notifyMentionedUsers(mentionedUids, docRef.id);
+    }
+
     return docRef.id;
   }
 
@@ -160,6 +173,9 @@ export class PostService {
       practiceDescription: session.description,
       practiceSubmission: session.submission,
       practiceCorrectedCode: session.correctedCode,
+      ...(session.interviewQuestionTitle
+        ? { interviewQuestionTitle: session.interviewQuestionTitle }
+        : {}),
     });
     return docRef.id;
   }
@@ -239,7 +255,7 @@ export class PostService {
     }
   }
 
-  async addComment(postId: string, text: string) {
+  async addComment(postId: string, text: string, mentionedUids?: string[]) {
     const user = this.auth.currentUser;
     if (!user) throw new Error('Not authenticated');
 
@@ -266,6 +282,7 @@ export class PostService {
       authorName: user.displayName || user.email || null,
       authorAvatarColor: userData?.avatarColor ?? null,
       createdAt: serverTimestamp(),
+      ...(mentionedUids?.length ? { mentionedUids } : {}),
     });
 
     // 2) increment count
@@ -285,6 +302,11 @@ export class PostService {
         createdAt: serverTimestamp(),
         read: false,
       }).catch(() => {});
+    }
+
+    // 4) notify mentioned users
+    if (mentionedUids?.length) {
+      this.notifyMentionedUsers(mentionedUids, postId, commentDoc.id);
     }
   }
 
@@ -390,5 +412,24 @@ export class PostService {
     const likeRef = doc(this.firestore, `posts/${postId}/likes/${user.uid}`);
     const snap = await getDoc(likeRef);
     return snap.exists();
+  }
+
+  private notifyMentionedUsers(uids: string[], postId: string, commentId?: string) {
+    const user = this.auth.currentUser;
+    if (!user) return;
+
+    const filtered = uids.filter((uid) => uid !== user.uid);
+    for (const uid of filtered) {
+      const notifCol = collection(this.firestore, `users/${uid}/notifications`);
+      addDoc(notifCol, {
+        type: 'mention',
+        postId,
+        ...(commentId ? { commentId } : {}),
+        actorId: user.uid,
+        actorName: user.displayName || user.email || null,
+        createdAt: serverTimestamp(),
+        read: false,
+      }).catch((e) => console.error('mention notif failed', e));
+    }
   }
 }

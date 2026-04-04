@@ -167,6 +167,25 @@
   margin-top: 1px;
 }
 
+.convo-call-btn {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.convo-call-btn:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
 .empty {
   text-align: center;
   padding: 24px 8px;

@@ -1,30 +1,66 @@
 <div class="practice-container">
   <div class="practice-header">
     <h2 class="practice-title">Practice Room</h2>
-    <div class="mode-toggle">
+    <div class="tab-toggle">
       <button
-        class="mode-btn"
-        [class.active]="selectedMode() === 'fix'"
-        (click)="selectedMode.set('fix')"
-      >Fix the Bug</button>
+        class="tab-toggle-btn"
+        [class.active]="activeTab() === 'practice'"
+        (click)="switchToPractice()"
+      >Practice</button>
       <button
-        class="mode-btn"
-        [class.active]="selectedMode() === 'build'"
-        (click)="selectedMode.set('build')"
-      >Build from Scratch</button>
-      <button
-        class="mode-btn"
-        [class.active]="selectedMode() === 'prompt'"
-        (click)="selectedMode.set('prompt')"
-      >Custom Prompt</button>
+        class="tab-toggle-btn"
+        [class.active]="activeTab() === 'interview'"
+        (click)="switchToInterview()"
+      >Interview Prep</button>
     </div>
+    @if (activeTab() === 'practice' && state() === 'selecting') {
+      <div class="mode-toggle">
+        <button
+          class="mode-btn"
+          [class.active]="selectedMode() === 'fix'"
+          (click)="selectedMode.set('fix')"
+        >Fix the Bug</button>
+        <button
+          class="mode-btn"
+          [class.active]="selectedMode() === 'build'"
+          (click)="selectedMode.set('build')"
+        >Build from Scratch</button>
+        <button
+          class="mode-btn"
+          [class.active]="selectedMode() === 'prompt'"
+          (click)="selectedMode.set('prompt')"
+        >Custom Prompt</button>
+      </div>
+    }
   </div>
 
   @if (errorMessage()) {
     <div class="error-banner">{{ errorMessage() }}</div>
   }
 
-  @if (state() === 'selecting') {
+  @if (state() === 'selecting' && activeTab() === 'interview') {
+    <div class="interview-language-picker">
+      <div class="select-label">Language</div>
+      <div class="chip-row">
+        @for (lang of languages; track lang) {
+          <button
+            class="chip"
+            [class.selected]="selectedLanguage() === lang"
+            (click)="selectedLanguage.set(lang)"
+          >
+            {{ lang }}
+          </button>
+        }
+      </div>
+    </div>
+    <app-interview-prep
+      [questions]="interviewQuestions"
+      [progress]="interviewProgress()"
+      (questionSelected)="onQuestionSelected($event)"
+    />
+  }
+
+  @if (state() === 'selecting' && activeTab() === 'practice') {
     <div class="select-panel">
       <div class="select-group">
         <div class="select-label">Language</div>
@@ -95,23 +131,31 @@
       <div class="scratch-pad-header">
         <span class="scratch-pad-label">Scratch Pad</span>
         <span class="scratch-pad-lang">{{ selectedLanguage() }}</span>
-        @if (showCompose() !== 'scratch') {
-          <button
-            class="btn-share-scratch"
-            [disabled]="sharingScratch() || !scratchCode().trim()"
-            (click)="openCompose('scratch')"
-          >
-            {{ sharingScratch() ? 'Sharing...' : 'Share to Feed' }}
+        <div class="scratch-pad-actions">
+          <button class="btn-expand" title="Fullscreen" (click)="toggleScratchFullscreen()">
+            &#x26F6;
           </button>
-        }
+          @if (showCompose() !== 'scratch') {
+            <button
+              class="btn-share-scratch"
+              [disabled]="sharingScratch() || !scratchCode().trim()"
+              (click)="openCompose('scratch')"
+            >
+              {{ sharingScratch() ? 'Sharing...' : 'Share to Feed' }}
+            </button>
+          }
+        </div>
       </div>
-      <div class="editor-wrapper">
-        <app-code-editor
-          [language]="selectedLanguage()"
-          [initialCode]="''"
-          (codeChange)="scratchCode.set($event)"
-        />
-      </div>
+      @if (!scratchFullscreen()) {
+        <div class="editor-wrapper">
+          <app-code-editor
+            [language]="selectedLanguage()"
+            [initialCode]="scratchCode()"
+            [showRun]="true"
+            (codeChange)="scratchCode.set($event)"
+          />
+        </div>
+      }
       @if (showCompose() === 'scratch') {
         <div class="compose-box">
           <textarea
@@ -144,7 +188,15 @@
     <div class="coding-panel">
       @if (challenge(); as ch) {
         <div class="description-box">
-          <div class="description-label">{{ selectedMode() === 'fix' ? 'Challenge' : 'Build This' }}</div>
+          <div class="description-label">
+            @if (selectedMode() === 'interview' && selectedQuestion(); as q) {
+              {{ q.title }}
+            } @else if (selectedMode() === 'fix') {
+              Challenge
+            } @else {
+              Build This
+            }
+          </div>
           <div class="description-text" [innerHTML]="ch.description | markdown"></div>
         </div>
       }
@@ -179,7 +231,11 @@
 
           <div class="result-meta">
             <span class="meta-chip">{{ selectedLanguage() }}</span>
-            @if (selectedMode() === 'prompt') {
+            @if (selectedMode() === 'interview' && selectedQuestion(); as q) {
+              <span class="meta-chip">{{ q.title }}</span>
+              <span class="meta-chip">{{ q.category }}</span>
+              <span class="meta-chip">{{ q.difficulty }}</span>
+            } @else if (selectedMode() === 'prompt') {
               <span class="meta-chip">Custom Prompt</span>
             } @else {
               <span class="meta-chip">{{ selectedCategory() }}</span>
@@ -254,7 +310,9 @@
           </div>
         } @else {
           <div class="result-footer-actions">
-            <button class="btn-primary try-another-btn" (click)="reset()">Try Another</button>
+            <button class="btn-primary try-another-btn" (click)="reset()">
+              {{ activeTab() === 'interview' ? 'Back to Questions' : 'Try Another' }}
+            </button>
             @if (!shared()) {
               <button class="btn-secondary share-btn" (click)="openCompose('practice')">
                 Share to Feed
@@ -266,5 +324,54 @@
         }
       </div>
     }
+  }
+
+  @if (scratchFullscreen()) {
+    <div class="scratch-fullscreen">
+      <div class="scratch-fs-toolbar">
+        <span class="scratch-fs-title">Scratch Pad</span>
+        <span class="scratch-fs-lang">{{ selectedLanguage() }}</span>
+        <div class="scratch-fs-toolbar-spacer"></div>
+        @if (canRunScratch) {
+          <button
+            class="run-btn"
+            [disabled]="scratchRunning()"
+            (click)="runScratchCode()"
+          >
+            @if (scratchRunning()) {
+              <span class="run-spinner"></span> Running...
+            } @else {
+              &#9654; Run
+            }
+          </button>
+        }
+        <button class="btn-fs-close" (click)="scratchFullscreen.set(false)">&#x2715;</button>
+      </div>
+      <div
+        class="scratch-fs-body"
+        (mousemove)="onDividerMove($event)"
+        (mouseup)="onDividerUp()"
+        (mouseleave)="onDividerUp()"
+      >
+        <div class="scratch-fs-left" [style.width.%]="scratchDividerPos()">
+          <app-code-editor
+            #scratchEditor
+            [language]="selectedLanguage()"
+            [initialCode]="scratchCode()"
+            [fillHeight]="true"
+            (codeChange)="scratchCode.set($event)"
+          />
+        </div>
+        <div class="scratch-fs-divider" (mousedown)="onDividerDown($event)"></div>
+        <div class="scratch-fs-right" [style.width.%]="100 - scratchDividerPos()">
+          <app-console-output
+            [entries]="scratchConsoleEntries()"
+            [alwaysShow]="true"
+            [fillHeight]="true"
+            (cleared)="clearScratchConsole()"
+          />
+        </div>
+      </div>
+    </div>
   }
 </div>

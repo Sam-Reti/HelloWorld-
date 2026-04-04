@@ -1,0 +1,123 @@
+:host {
+  flex: 1;
+  min-width: 0;
+}
+
+.mention-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.mention-wrap textarea {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 96px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border-input);
+  background: var(--bg-subtle);
+  color: var(--text);
+  resize: none;
+  outline: none;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.mention-wrap textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.mention-wrap textarea:focus {
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+.mention-wrap input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: 10px 8px;
+  font-size: 14px;
+  color: var(--text);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.mention-wrap input::placeholder {
+  color: var(--text-muted);
+}
+
+/* Dropdown — position: fixed is applied via [ngStyle] to escape overflow: hidden parents */
+.mention-dropdown {
+  overflow-y: auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  z-index: 9999;
+}
+
+.mention-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.mention-option:first-child {
+  border-radius: 12px 12px 0 0;
+}
+
+.mention-option:last-child {
+  border-radius: 0 0 12px 12px;
+}
+
+.mention-option:only-child {
+  border-radius: 12px;
+}
+
+.mention-option.active {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.mention-option:hover {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.mention-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 12px;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.mention-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.mention-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mention-role {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

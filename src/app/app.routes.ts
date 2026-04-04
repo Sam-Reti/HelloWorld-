@@ -14,6 +14,9 @@ import { UserProfile } from './user-profile/user-profile';
 import { ChatInbox } from './chat-inbox/chat-inbox';
 import { Following } from './following/following';
 import { ResetPasswordComponent } from './reset-password/reset-password';
+import { CirclesListComponent } from './circles/circles-list/circles-list';
+import { CreateCircleComponent } from './circles/create-circle/create-circle';
+import { CircleDetailComponent } from './circles/circle-detail/circle-detail';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -43,6 +46,9 @@ export const routes: Routes = [
       { path: 'following', component: Following },
       { path: 'user/:uid', component: UserProfile },
       { path: 'messages', component: ChatInbox },
+      { path: 'circles', component: CirclesListComponent },
+      { path: 'circles/create', component: CreateCircleComponent },
+      { path: 'circles/:circleId', component: CircleDetailComponent },
       {
         path: 'practice',
         loadComponent: () => import('./practice/practice').then((m) => m.PracticeComponent),

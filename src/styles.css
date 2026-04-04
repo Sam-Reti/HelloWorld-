@@ -127,6 +127,29 @@ body[data-theme='dracula'] {
   --nav-active-border: rgba(189, 147, 249, 0.25);
 }
 
+/* ── @mention links (rendered via innerHTML, bypasses encapsulation) ── */
+
+a.mention {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  padding: 1px 4px;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+a.mention:hover {
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  text-decoration: underline;
+}
+
+/* ── Hiyve video grid: single-column when editor is open ─ */
+
+.editor-open .video-panel hiyve-video-grid .video-grid {
+  grid-template-columns: 1fr !important;
+}
+
 /* ── Hiyve control bar overrides ────────────────────────── */
 
 /* Force mini-fab buttons to be proper circles */

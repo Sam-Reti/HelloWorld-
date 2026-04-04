@@ -1,7 +1,61 @@
+.run-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 6px 8px;
+  background: #282c34;
+  border-radius: 8px 8px 0 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.run-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 6px;
+  border: none;
+  background: #22c55e;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.run-btn:hover:not(:disabled) {
+  background: #16a34a;
+}
+
+.run-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.run-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 .editor-host {
   width: 100%;
-  border-radius: 8px;
   overflow: hidden;
+}
+
+:host > .run-toolbar + .editor-host {
+  border-radius: 0;
+}
+
+:host > .editor-host:first-child {
+  border-radius: 8px;
 }
 
 ::ng-deep .editor-host .cm-editor {
@@ -17,4 +71,20 @@
 
 ::ng-deep .editor-host .cm-focused {
   outline: none;
+}
+
+:host(.fill-height) {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+:host(.fill-height) .editor-host {
+  flex: 1;
+  min-height: 0;
+}
+
+:host(.fill-height) ::ng-deep .editor-host .cm-editor {
+  height: 100%;
+  max-height: none;
 }

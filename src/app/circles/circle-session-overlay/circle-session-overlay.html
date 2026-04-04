@@ -1,17 +1,27 @@
 @if (sessionService.activeSession(); as session) {
-  <div class="session-overlay">
+  <div class="session-overlay" [class.editor-open]="sharedEditorService.editorOpen()">
     <div class="session-header">
       <span class="session-name">{{ session.circleName }}</span>
     </div>
-    <div class="video-panel">
-      <hiyve-video-grid
-        [localUserName]="session.startedByName"
-        [layout]="'grid'"
-        [showNames]="true"
-        [colors]="{ background: '#0a0a14' }"
-      />
+    <div class="call-content">
+      <div class="video-panel">
+        <hiyve-video-grid
+          [localUserName]="session.startedByName"
+          [layout]="'grid'"
+          [showNames]="true"
+          [colors]="{ background: '#0a0a14' }"
+        />
+      </div>
+      @if (sharedEditorService.editorOpen()) {
+        <div class="editor-panel">
+          <app-shared-editor (close)="toggleEditor()" />
+        </div>
+      }
     </div>
     <div class="control-bar-wrap">
+      <button class="toggle-editor-btn" (click)="toggleEditor()">
+        {{ sharedEditorService.editorOpen() ? 'Hide Editor' : 'Code Together' }}
+      </button>
       <hiyve-control-bar
         [showAudioToggle]="true"
         [showVideoToggle]="true"
@@ -32,4 +42,12 @@
       </div>
     }
   </div>
+}
+
+@if (showSaveModal()) {
+  <app-save-code-modal
+    [code]="savedCode()"
+    [language]="savedLanguage()"
+    (dismiss)="dismissSaveModal()"
+  />
 }

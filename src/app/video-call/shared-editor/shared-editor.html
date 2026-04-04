@@ -1,5 +1,14 @@
-@if (showRun) {
-  <div class="run-toolbar">
+<div class="shared-editor">
+  <div class="editor-toolbar">
+    <select
+      class="language-select"
+      [ngModel]="service.language()"
+      (ngModelChange)="onLanguageChange($event)"
+    >
+      @for (lang of languages; track lang) {
+        <option [value]="lang">{{ lang }}</option>
+      }
+    </select>
     <button
       class="run-btn"
       [disabled]="!canRun || running()"
@@ -12,13 +21,12 @@
         &#9654; Run
       }
     </button>
+    <button class="close-btn" (click)="onClose()">Close</button>
   </div>
-}
-<div #editorHost class="editor-host"></div>
-@if (showRun) {
+  <div class="editor-host" #editorHost></div>
   <app-console-output
     [entries]="consoleEntries()"
     [alwaysShow]="consoleEntries().length > 0"
     (cleared)="clearConsole()"
   />
-}
+</div>

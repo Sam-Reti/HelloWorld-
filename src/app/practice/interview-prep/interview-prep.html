@@ -1,0 +1,25 @@
+<div class="interview-list">
+  <div class="interview-list-header">
+    <h3 class="interview-list-title">Interview Questions</h3>
+    <span class="interview-list-count">{{ questions().length }} problems</span>
+  </div>
+
+  @for (q of questions(); track q.id) {
+    <button class="question-row" (click)="questionSelected.emit(q)">
+      <span
+        class="difficulty-badge"
+        [style.color]="difficultyColor(q.difficulty)"
+        [style.border-color]="difficultyColor(q.difficulty)"
+      >
+        {{ q.difficulty }}
+      </span>
+      <span class="question-title">{{ q.title }}</span>
+      <span class="category-chip">{{ q.category }}</span>
+      @if (progressFor(q.id); as p) {
+        <span class="grade-badge" [style.background]="gradeColor(p.bestGrade)">
+          {{ p.bestGrade }}
+        </span>
+      }
+    </button>
+  }
+</div>

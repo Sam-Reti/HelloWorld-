@@ -63,7 +63,7 @@ describe('Feed', () => {
     it('should call postService.createPost and clear text', async () => {
       component.text = 'Hello world';
       await component.createPost();
-      expect(mockPostService.createPost).toHaveBeenCalledWith('Hello world', null);
+      expect(mockPostService.createPost).toHaveBeenCalledWith('Hello world', null, []);
       expect(component.text).toBe('');
     });
   });
@@ -97,7 +97,7 @@ describe('Feed', () => {
     it('should call addComment and clear text', async () => {
       component.commentText['p1'] = 'Nice!';
       await component.submitComment('p1');
-      expect(mockPostService.addComment).toHaveBeenCalledWith('p1', 'Nice!');
+      expect(mockPostService.addComment).toHaveBeenCalledWith('p1', 'Nice!', []);
       expect(component.commentText['p1']).toBe('');
     });
 

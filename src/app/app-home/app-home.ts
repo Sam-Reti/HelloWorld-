@@ -48,6 +48,8 @@ import { PracticeSidebar } from '../practice-sidebar/practice-sidebar';
 import { VideoCallService } from '../video-call/video-call.service';
 import { VideoCallOverlayComponent } from '../video-call/video-call-overlay/video-call-overlay';
 import { IncomingCallBannerComponent } from '../video-call/incoming-call-banner/incoming-call-banner';
+import { CirclesSidebar } from '../circles-sidebar/circles-sidebar';
+import { CircleSessionOverlayComponent } from '../circles/circle-session-overlay/circle-session-overlay';
 
 @Component({
   selector: 'app-app-home',
@@ -64,6 +66,8 @@ import { IncomingCallBannerComponent } from '../video-call/incoming-call-banner/
     PracticeSidebar,
     VideoCallOverlayComponent,
     IncomingCallBannerComponent,
+    CirclesSidebar,
+    CircleSessionOverlayComponent,
   ],
   templateUrl: './app-home.html',
   styleUrl: './app-home.css',

@@ -1,22 +1,30 @@
 import { Component, inject, signal, DestroyRef } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { VideoCallService } from '../video-call.service';
+import { SharedEditorService } from '../shared-editor/shared-editor.service';
+import { SharedEditorComponent } from '../shared-editor/shared-editor';
+import { SaveCodeModalComponent } from '../save-code-modal/save-code-modal';
+import { EditorLanguage } from '../shared-editor/shared-editor.models';
 
 import { VideoGridComponent, ControlBarComponent } from '@hiyve/angular';
 
 @Component({
   selector: 'app-video-call-overlay',
   standalone: true,
-  imports: [VideoGridComponent, ControlBarComponent],
+  imports: [VideoGridComponent, ControlBarComponent, SharedEditorComponent, SaveCodeModalComponent],
+  providers: [SharedEditorService],
   templateUrl: './video-call-overlay.html',
   styleUrl: './video-call-overlay.css',
 })
 export class VideoCallOverlayComponent {
   readonly videoCallService = inject(VideoCallService);
+  readonly sharedEditorService = inject(SharedEditorService);
   private destroyRef = inject(DestroyRef);
 
-  /** True once the user has successfully joined the room — suppresses the connecting screen forever after. */
   readonly hasConnected = signal(false);
+  readonly showSaveModal = signal(false);
+  readonly savedCode = signal('');
+  readonly savedLanguage = signal<EditorLanguage>('JavaScript');
 
   readonly controlBarColors = {
     background: 'transparent',
@@ -44,5 +52,38 @@ export class VideoCallOverlayComponent {
       .subscribe((inRoom) => {
         if (inRoom) this.hasConnected.set(true);
       });
+
+    toObservable(this.videoCallService.activeCall)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((call) => {
+        if (call) {
+          this.sharedEditorService.attach(call.id);
+        } else {
+          this.sharedEditorService.detach();
+        }
+      });
+  }
+
+  toggleEditor(): void {
+    this.sharedEditorService.toggleEditor();
+  }
+
+  onLeaveCall(): void {
+    const content = this.sharedEditorService.getDocumentContent();
+    if (content.trim()) {
+      this.savedCode.set(content);
+      this.savedLanguage.set(this.sharedEditorService.language());
+      this.showSaveModal.set(true);
+      this.sharedEditorService.detach();
+      this.videoCallService.endCall();
+    } else {
+      this.sharedEditorService.detach();
+      this.videoCallService.endCall();
+    }
+  }
+
+  dismissSaveModal(): void {
+    this.showSaveModal.set(false);
+    this.savedCode.set('');
   }
 }

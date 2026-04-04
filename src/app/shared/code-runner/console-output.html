@@ -1,0 +1,19 @@
+@if (entries().length > 0 || alwaysShow()) {
+  <div class="console-panel" [class.fill-height]="fillHeight()">
+    <div class="console-header">
+      <span class="console-title">Console</span>
+      <button class="clear-btn" (click)="onClear()">Clear</button>
+    </div>
+    <div class="console-body" #consoleBody>
+      @for (entry of entries(); track entry.timestamp + $index) {
+        <div class="console-entry" [class]="'level-' + entry.level">
+          <span class="entry-level">{{ entry.level }}</span>
+          <span class="entry-text">{{ entry.args.join(' ') }}</span>
+        </div>
+      }
+      @if (entries().length === 0) {
+        <div class="console-empty">Run your code to see output here.</div>
+      }
+    </div>
+  </div>
+}

@@ -1,0 +1,130 @@
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.modal-content {
+  background: #161b22;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 28px;
+  max-width: 640px;
+  width: 100%;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modal-title {
+  margin: 0;
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.modal-subtitle {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.85rem;
+}
+
+.code-preview {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background: #0d1117;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 16px;
+  margin: 0;
+  color: #e6edf3;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.caption-input {
+  width: 100%;
+  background: #0d1117;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 12px;
+  color: #e6edf3;
+  font-family: inherit;
+  font-size: 0.85rem;
+  resize: none;
+  outline: none;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+
+.caption-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.caption-input:focus {
+  border-color: rgba(14, 165, 164, 0.5);
+}
+
+.error-text {
+  margin: 0;
+  color: #f87171;
+  font-size: 0.8rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.share-btn {
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: none;
+  background: var(--accent, #0ea5a4);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.share-btn:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.share-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dismiss-btn {
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.dismiss-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.dismiss-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

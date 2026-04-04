@@ -1,12 +1,24 @@
 @if (videoCallService.activeCall(); as call) {
-  <div class="call-overlay">
-    <hiyve-video-grid
-      [localUserName]="videoCallService.localUserName"
-      [layout]="'grid'"
-      [showNames]="true"
-      [colors]="{ background: '#0a0a14' }"
-    />
+  <div class="call-overlay" [class.editor-open]="sharedEditorService.editorOpen()">
+    <div class="call-content">
+      <div class="video-panel">
+        <hiyve-video-grid
+          [localUserName]="videoCallService.localUserName"
+          [layout]="'grid'"
+          [showNames]="true"
+          [colors]="{ background: '#0a0a14' }"
+        />
+      </div>
+      @if (sharedEditorService.editorOpen()) {
+        <div class="editor-panel">
+          <app-shared-editor (close)="toggleEditor()" />
+        </div>
+      }
+    </div>
     <div class="control-bar-wrap">
+      <button class="toggle-editor-btn" (click)="toggleEditor()">
+        {{ sharedEditorService.editorOpen() ? 'Hide Editor' : 'Code Together' }}
+      </button>
       <hiyve-control-bar
         [showAudioToggle]="true"
         [showVideoToggle]="true"
@@ -15,7 +27,7 @@
         [showLeaveConfirmation]="false"
         [colors]="controlBarColors"
         [styles]="controlBarStyles"
-        (leave)="videoCallService.endCall()"
+        (leave)="onLeaveCall()"
       />
     </div>
 
@@ -31,4 +43,12 @@
       </div>
     }
   </div>
+}
+
+@if (showSaveModal()) {
+  <app-save-code-modal
+    [code]="savedCode()"
+    [language]="savedLanguage()"
+    (dismiss)="dismissSaveModal()"
+  />
 }
