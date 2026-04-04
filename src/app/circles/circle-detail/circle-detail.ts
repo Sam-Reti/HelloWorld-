@@ -10,11 +10,12 @@ import { CircleSessionService } from '../../services/circle-session.service';
 import { Circle, CircleMember, CircleSession } from '../circle.models';
 import { InviteModalComponent } from '../invite-modal/invite-modal';
 import { CircleFeedComponent } from '../circle-feed/circle-feed';
+import { CircleChatComponent } from '../circle-chat/circle-chat';
 
 @Component({
   selector: 'app-circle-detail',
   standalone: true,
-  imports: [AsyncPipe, FormsModule, InviteModalComponent, CircleFeedComponent],
+  imports: [AsyncPipe, FormsModule, InviteModalComponent, CircleFeedComponent, CircleChatComponent],
   templateUrl: './circle-detail.html',
   styleUrl: './circle-detail.css',
 })
@@ -26,10 +27,11 @@ export class CircleDetailComponent {
   private destroyRef = inject(DestroyRef);
 
   showInviteModal = signal(false);
-  activeTab = signal<'feed' | 'members'>('feed');
+  activeTab = signal<'feed' | 'members' | 'chat'>('feed');
 
   editing = signal(false);
   editName = '';
+  editDescription = '';
   editBannerPreview = signal<string | null>(null);
   editBannerFile = signal<File | null>(null);
 
@@ -110,6 +112,7 @@ export class CircleDetailComponent {
 
   startEditCircle(circle: Circle): void {
     this.editName = circle.name;
+    this.editDescription = circle.description ?? '';
     this.editBannerPreview.set(circle.bannerUrl);
     this.editBannerFile.set(null);
     this.editing.set(true);
@@ -118,13 +121,14 @@ export class CircleDetailComponent {
   cancelEditCircle(): void {
     this.editing.set(false);
     this.editName = '';
+    this.editDescription = '';
     this.editBannerPreview.set(null);
     this.editBannerFile.set(null);
   }
 
   async saveEditCircle(circleId: string): Promise<void> {
     if (!this.editName.trim()) return;
-    await this.circleService.updateCircle(circleId, this.editName, this.editBannerFile());
+    await this.circleService.updateCircle(circleId, this.editName, this.editDescription, this.editBannerFile());
     this.editing.set(false);
   }
 
@@ -132,6 +136,10 @@ export class CircleDetailComponent {
     if (!confirm('Are you sure you want to delete this circle? This cannot be undone.')) return;
     await this.circleService.deleteCircle(circleId);
     this.router.navigate(['/circles']);
+  }
+
+  async enableChat(circleId: string): Promise<void> {
+    await this.circleService.enableChat(circleId);
   }
 
   onBannerSelect(event: Event): void {

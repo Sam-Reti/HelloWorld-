@@ -1,0 +1,32 @@
+<div class="chat-container">
+  <div class="message-list" #messageList>
+    @for (msg of (messages$ | async) ?? []; track msg.id) {
+      <div class="message" [class.mine]="msg.senderId === currentUid">
+        @if (msg.senderId !== currentUid) {
+          <div class="msg-avatar" [style.background]="msg.senderAvatarColor || '#0ea5a4'">
+            {{ getInitials(msg.senderName) }}
+          </div>
+        }
+        <div class="msg-body">
+          @if (msg.senderId !== currentUid) {
+            <span class="msg-sender">{{ msg.senderName }}</span>
+          }
+          <div class="bubble">{{ msg.text }}</div>
+        </div>
+      </div>
+    } @empty {
+      <div class="empty-state">No messages yet. Start the conversation!</div>
+    }
+  </div>
+
+  <div class="input-row">
+    <textarea
+      class="msg-input"
+      placeholder="Message…"
+      [(ngModel)]="text"
+      (keydown)="onKeydown($event)"
+      rows="1"
+    ></textarea>
+    <button class="send-btn" (click)="send()" [disabled]="!text.trim()">Send</button>
+  </div>
+</div>

@@ -1,0 +1,151 @@
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 480px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.message-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  scrollbar-width: none;
+}
+
+.message {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  justify-content: flex-start;
+}
+
+.message.mine {
+  justify-content: flex-end;
+}
+
+.msg-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  font-weight: 800;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.msg-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 72%;
+}
+
+.msg-sender {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  padding-left: 4px;
+}
+
+.bubble {
+  padding: 8px 12px;
+  border-radius: 16px;
+  font-size: 13px;
+  line-height: 1.45;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  color: var(--text);
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.message.mine .bubble {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.empty-state {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.input-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.msg-input {
+  flex: 1;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  background: var(--bg-subtle);
+  color: var(--text);
+  outline: none;
+  resize: none;
+  max-height: 100px;
+  overflow-y: auto;
+  line-height: 1.4;
+  field-sizing: content;
+}
+
+.msg-input:focus {
+  border-color: var(--accent);
+}
+
+.send-btn {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.send-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 85%, #000);
+}
+
+.send-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+@media (max-width: 600px) {
+  .msg-input {
+    font-size: 16px;
+    padding: 10px 14px;
+  }
+
+  .send-btn {
+    font-size: 14px;
+    padding: 10px 16px;
+  }
+
+  .bubble {
+    font-size: 15px;
+    padding: 10px 14px;
+  }
+}

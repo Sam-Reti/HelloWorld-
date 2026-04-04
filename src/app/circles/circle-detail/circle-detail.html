@@ -73,6 +73,15 @@
             placeholder="Circle name"
           />
 
+          <label class="edit-label" for="editDesc">Description</label>
+          <textarea
+            id="editDesc"
+            class="edit-input edit-textarea"
+            [(ngModel)]="editDescription"
+            placeholder="Describe your circle..."
+            rows="3"
+          ></textarea>
+
           <label class="edit-label">Banner</label>
           <div class="edit-banner-preview-wrapper">
             @if (editBannerPreview()) {
@@ -110,6 +119,9 @@
       @if (isAdmin$ | async) {
         <div class="admin-bar">
           <button class="btn btn-primary" (click)="startSession(circle)">Start Session</button>
+          @if (!circle.chatEnabled) {
+            <button class="btn btn-outline" (click)="enableChat(circle.id!)">Enable Chat</button>
+          }
         </div>
 
         <!-- Pending requests -->
@@ -141,6 +153,13 @@
             (click)="activeTab.set('feed')"
           >Feed</button>
         }
+        @if (circle.chatEnabled && (isMember$ | async)) {
+          <button
+            class="tab"
+            [class.tab-active]="activeTab() === 'chat'"
+            (click)="activeTab.set('chat')"
+          >Chat</button>
+        }
         <button
           class="tab"
           [class.tab-active]="activeTab() === 'members'"
@@ -151,6 +170,11 @@
       <!-- Feed tab (members only) -->
       @if (activeTab() === 'feed' && (isMember$ | async)) {
         <app-circle-feed [circleId]="circle.id!" />
+      }
+
+      <!-- Chat tab (members only) -->
+      @if (activeTab() === 'chat' && circle.chatEnabled && (isMember$ | async)) {
+        <app-circle-chat [circleId]="circle.id!" />
       }
 
       <!-- Members tab -->

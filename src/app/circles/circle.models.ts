@@ -13,6 +13,7 @@ export interface Circle {
   creatorName: string;
   creatorAvatarColor: string | null;
   memberCount: number;
+  chatEnabled?: boolean;
   createdAt: any;
 }
 
@@ -57,6 +58,15 @@ export interface CirclePost {
   commentCount: number;
   imageUrl?: string | null;
   mentionedUids?: string[];
+}
+
+export interface CircleChatMessage {
+  id?: string;
+  senderId: string;
+  senderName: string;
+  senderAvatarColor: string | null;
+  text: string;
+  createdAt: any;
 }
 
 export interface CircleComment {

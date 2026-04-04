@@ -28,6 +28,7 @@ import {
   CircleMemberStatus,
   CirclePost,
   CircleComment,
+  CircleChatMessage,
 } from '../circles/circle.models';
 
 @Injectable({ providedIn: 'root' })
@@ -284,8 +285,13 @@ export class CircleService {
     }).catch(() => {});
   }
 
-  /** Update a circle's name and optionally its banner image. */
-  async updateCircle(circleId: string, name: string, bannerFile?: File | null): Promise<void> {
+  /** Update a circle's name, description, and optionally its banner image. */
+  async updateCircle(
+    circleId: string,
+    name: string,
+    description: string,
+    bannerFile?: File | null,
+  ): Promise<void> {
     const user = this.auth.currentUser;
     if (!user) throw new Error('Not authenticated');
 
@@ -300,7 +306,10 @@ export class CircleService {
     }
 
     const circleRef = doc(this.firestore, `circles/${circleId}`);
-    const updates: Record<string, unknown> = { name: name.trim() };
+    const updates: Record<string, unknown> = {
+      name: name.trim(),
+      description: description.trim(),
+    };
     if (bannerUrl !== undefined) {
       updates['bannerUrl'] = bannerUrl;
     }
@@ -451,5 +460,39 @@ export class CircleService {
   async updateCirclePost(circleId: string, postId: string, text: string): Promise<void> {
     const postRef = doc(this.firestore, `circles/${circleId}/posts/${postId}`);
     await updateDoc(postRef, { text: text.trim() });
+  }
+
+  // ── Circle Chat ─────────────────────────────────────────────
+
+  async enableChat(circleId: string): Promise<void> {
+    const circleRef = doc(this.firestore, `circles/${circleId}`);
+    await updateDoc(circleRef, { chatEnabled: true });
+  }
+
+  async sendCircleMessage(circleId: string, text: string): Promise<void> {
+    const user = this.auth.currentUser;
+    if (!user) throw new Error('Not authenticated');
+
+    const clean = text.trim();
+    if (!clean) return;
+
+    const userRef = doc(this.firestore, `users/${user.uid}`);
+    const snap = await getDoc(userRef);
+    const userData = snap.exists() ? (snap.data() as any) : {};
+
+    const chatCol = collection(this.firestore, `circles/${circleId}/chat`);
+    await addDoc(chatCol, {
+      senderId: user.uid,
+      senderName: userData.displayName ?? user.displayName ?? 'Unknown',
+      senderAvatarColor: userData.avatarColor ?? null,
+      text: clean,
+      createdAt: serverTimestamp(),
+    });
+  }
+
+  getCircleMessages$(circleId: string): Observable<CircleChatMessage[]> {
+    const chatCol = collection(this.firestore, `circles/${circleId}/chat`);
+    const q = query(chatCol, orderBy('createdAt', 'asc'));
+    return collectionData(q, { idField: 'id' }) as Observable<CircleChatMessage[]>;
   }
 }
