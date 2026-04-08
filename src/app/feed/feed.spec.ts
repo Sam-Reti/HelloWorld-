@@ -147,4 +147,88 @@ describe('Feed', () => {
       expect(component.editText).toBe('');
     });
   });
+
+  describe('saveEdit()', () => {
+    it('should skip empty text for non-practice posts', async () => {
+      component.editText = '   ';
+      component.editingPostType = undefined;
+      await component.saveEdit('p1');
+      expect(mockPostService.updatePost).not.toHaveBeenCalled();
+    });
+
+    it('should allow empty text for practice posts', async () => {
+      component.editText = '   ';
+      component.editingPostType = 'practice';
+      await component.saveEdit('p1');
+      expect(mockPostService.updatePost).toHaveBeenCalledWith('p1', '');
+    });
+
+    it('should update post and clear edit state on success', async () => {
+      component.posts.set([
+        { id: 'p1', text: 'old', authorId: 'u1', authorName: null, createdAt: new Date(), likeCount: 0, commentCount: 0 },
+      ]);
+      component.editingPostId = 'p1';
+      component.editText = '  new text  ';
+      component.editingPostType = undefined;
+      await component.saveEdit('p1');
+
+      expect(mockPostService.updatePost).toHaveBeenCalledWith('p1', 'new text');
+      expect(component.editingPostId).toBeNull();
+      expect(component.posts()[0].text).toBe('new text');
+    });
+  });
+
+  describe('toggleLike() revert on error', () => {
+    it('should revert like state if service call fails', async () => {
+      component.posts.set([
+        { id: 'p1', text: 'hi', authorId: 'u1', authorName: null, createdAt: new Date(), likeCount: 0, commentCount: 0 },
+      ]);
+      mockPostService.toggleLike.mockRejectedValue(new Error('Network error'));
+
+      await component.toggleLike('p1');
+
+      // Should have reverted back to not liked
+      expect(component.isLiked('p1')).toBe(false);
+      expect(component.posts()[0].likeCount).toBe(0);
+    });
+  });
+
+  describe('getAvatarColor()', () => {
+    it('should use userColors map when available', () => {
+      component.userColors = { 'u1': '#ff0000' };
+      const post = { authorId: 'u1', authorAvatarColor: '#00ff00' } as any;
+      expect(component.getAvatarColor(post)).toBe('#ff0000');
+    });
+
+    it('should fall back to post color', () => {
+      const post = { authorId: 'unknown', authorAvatarColor: '#00ff00' } as any;
+      expect(component.getAvatarColor(post)).toBe('#00ff00');
+    });
+
+    it('should use default color as last resort', () => {
+      const post = { authorId: 'unknown', authorAvatarColor: '' } as any;
+      expect(component.getAvatarColor(post)).toBe('#0ea5a4');
+    });
+  });
+
+  describe('getCommentAvatarColor()', () => {
+    it('should use userColors for comment author', () => {
+      component.userColors = { 'u1': '#ff0000' };
+      expect(component.getCommentAvatarColor({ authorId: 'u1', authorAvatarColor: '#00ff00' })).toBe('#ff0000');
+    });
+  });
+
+  describe('isLiked()', () => {
+    it('should return false for unknown post', () => {
+      expect(component.isLiked('nonexistent')).toBe(false);
+    });
+  });
+
+  describe('getComments()', () => {
+    it('should cache and reuse observables', () => {
+      const obs1 = component.getComments('p1');
+      const obs2 = component.getComments('p1');
+      expect(obs1).toBe(obs2);
+    });
+  });
 });

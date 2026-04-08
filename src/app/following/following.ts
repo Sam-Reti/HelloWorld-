@@ -6,6 +6,7 @@ import { combineLatest, map, Observable } from 'rxjs';
 import { FollowService, PublicUser } from '../services/follow.service';
 import { ChatService } from '../services/chat.service';
 import { ChatPopupService } from '../services/chat-popup.service';
+import { ToastService } from '../shared/toast/toast.service';
 
 @Component({
   selector: 'app-following',
@@ -18,6 +19,7 @@ export class Following {
   private followService = inject(FollowService);
   private chatService = inject(ChatService);
   private chatPopupService = inject(ChatPopupService);
+  private toast = inject(ToastService);
   private auth = inject(Auth);
 
   currentUid = this.auth.currentUser?.uid ?? null;
@@ -37,8 +39,8 @@ export class Following {
   async unfollow(uid: string): Promise<void> {
     try {
       await this.followService.unfollow(uid);
-    } catch (e) {
-      console.error('Unfollow failed', e);
+    } catch {
+      this.toast.error('Failed to unfollow.');
     }
   }
 

@@ -32,6 +32,7 @@ export class CreateCircleComponent {
   }
 
   removeBanner(): void {
+    if (this.bannerPreview) URL.revokeObjectURL(this.bannerPreview);
     this.bannerFile = null;
     this.bannerPreview = null;
   }

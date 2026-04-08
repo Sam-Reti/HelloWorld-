@@ -2,6 +2,8 @@ import {
   Component,
   Input,
   AfterViewChecked,
+  OnChanges,
+  OnDestroy,
   ViewChild,
   ElementRef,
   inject,
@@ -21,7 +23,7 @@ import { CircleChatMessage } from '../circle.models';
   templateUrl: './circle-chat.html',
   styleUrl: './circle-chat.css',
 })
-export class CircleChatComponent implements AfterViewChecked {
+export class CircleChatComponent implements OnChanges, AfterViewChecked, OnDestroy {
   @ViewChild('messageList') messageList?: ElementRef;
   @Input({ required: true }) circleId!: string;
 
@@ -34,11 +36,11 @@ export class CircleChatComponent implements AfterViewChecked {
 
   private shouldScroll = false;
   private sub?: Subscription;
-  private initialized = false;
+  private lastCircleId?: string;
 
   ngOnChanges(): void {
-    if (!this.circleId || this.initialized) return;
-    this.initialized = true;
+    if (!this.circleId || this.circleId === this.lastCircleId) return;
+    this.lastCircleId = this.circleId;
     this.sub?.unsubscribe();
     this.messages$ = this.circleService.getCircleMessages$(this.circleId);
     this.sub = this.messages$.subscribe(() => {

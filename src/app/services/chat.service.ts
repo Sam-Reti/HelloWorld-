@@ -141,7 +141,7 @@ export class ChatService {
       lastMessage: clean,
       lastMessageAt: serverTimestamp(),
       lastMessageSenderId: uid,
-      unreadBy: other ? arrayUnion(other) : [],
+      ...(other ? { unreadBy: arrayUnion(other) } : {}),
     });
   }
 

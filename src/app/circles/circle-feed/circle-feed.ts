@@ -23,6 +23,7 @@ import { MarkdownPipe } from '../../pipes/markdown.pipe';
 import { MentionPipe } from '../../pipes/mention.pipe';
 import { MentionTextareaComponent } from '../../shared/mentions/mention-textarea';
 import { MentionLinkDirective } from '../../shared/mentions/mention-link.directive';
+import { ToastService } from '../../shared/toast/toast.service';
 
 @Component({
   selector: 'app-circle-feed',
@@ -48,6 +49,7 @@ export class CircleFeedComponent implements OnInit, OnChanges {
   private auth = inject(Auth);
   private cdr = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
+  private toast = inject(ToastService);
 
   text = '';
   posts = signal<CirclePost[]>([]);
@@ -109,10 +111,13 @@ export class CircleFeedComponent implements OnInit, OnChanges {
     for (const post of posts) {
       if (!post.id || this.likeChecked.has(post.id)) continue;
       this.likeChecked.add(post.id);
-      this.circleService.hasLikedCirclePost(this.circleId, post.id).then((liked) => {
-        if (liked) this.likedPostIds = new Set([...this.likedPostIds, post.id!]);
-        this.cdr.markForCheck();
-      });
+      this.circleService
+        .hasLikedCirclePost(this.circleId, post.id)
+        .then((liked) => {
+          if (liked) this.likedPostIds = new Set([...this.likedPostIds, post.id!]);
+          this.cdr.markForCheck();
+        })
+        .catch(() => {});
     }
   }
 
@@ -131,8 +136,8 @@ export class CircleFeedComponent implements OnInit, OnChanges {
       this.text = '';
       this.postMentionedUids = [];
       this.clearImage();
-    } catch (e) {
-      console.error('Circle post creation failed:', e);
+    } catch {
+      this.toast.error('Failed to create post.');
     }
   }
 
@@ -178,8 +183,8 @@ export class CircleFeedComponent implements OnInit, OnChanges {
       await this.circleService.updateCirclePost(this.circleId, postId, trimmed);
       this.editingPostId = null;
       this.editText = '';
-    } catch (e) {
-      console.error('Edit failed:', e);
+    } catch {
+      this.toast.error('Failed to save changes.');
     }
   }
 

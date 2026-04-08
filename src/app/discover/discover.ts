@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { Auth, authState } from '@angular/fire/auth';
 import { FollowService } from '../services/follow.service';
 import { firstValueFrom } from 'rxjs';
+import { ToastService } from '../shared/toast/toast.service';
 
 @Component({
   selector: 'app-discover',
@@ -15,6 +16,7 @@ import { firstValueFrom } from 'rxjs';
 export class Discover {
   private followService = inject(FollowService);
   private auth = inject(Auth);
+  private toast = inject(ToastService);
 
   users$ = this.followService.getAllUsers$();
   followingIds$ = this.followService.getFollowingIds$();
@@ -38,8 +40,8 @@ export class Discover {
       } else {
         await this.followService.follow(targetUid);
       }
-    } catch (e) {
-      console.error('follow/unfollow failed', e);
+    } catch {
+      this.toast.error('Action failed.');
     }
   }
 }

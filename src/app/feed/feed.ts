@@ -27,6 +27,7 @@ import { PracticePostCardComponent } from '../practice/practice-post-card/practi
 import { CodePostCardComponent } from '../code-post-card/code-post-card';
 import { QueryDocumentSnapshot, DocumentData, getDoc, doc } from 'firebase/firestore';
 import { Firestore } from '@angular/fire/firestore';
+import { ToastService } from '../shared/toast/toast.service';
 
 const PAGE_SIZE = 30;
 
@@ -85,6 +86,7 @@ export class Feed implements OnInit, AfterViewInit {
     private followService: FollowService,
     private cdr: ChangeDetectorRef,
     private firestore: Firestore,
+    private toast: ToastService,
   ) {
     this.currentUid = this.auth.currentUser?.uid ?? null;
     this.destroyRef.onDestroy(() => this.observer?.disconnect());
@@ -173,10 +175,13 @@ export class Feed implements OnInit, AfterViewInit {
     for (const post of posts) {
       if (post.id && !this.likeChecked.has(post.id)) {
         this.likeChecked.add(post.id);
-        this.postService.hasLiked(post.id).then((liked) => {
-          if (liked) this.likedPostIds = new Set([...this.likedPostIds, post.id!]);
-          this.cdr.markForCheck();
-        });
+        this.postService
+          .hasLiked(post.id)
+          .then((liked) => {
+            if (liked) this.likedPostIds = new Set([...this.likedPostIds, post.id!]);
+            this.cdr.markForCheck();
+          })
+          .catch(() => {});
       }
     }
   }
@@ -192,8 +197,8 @@ export class Feed implements OnInit, AfterViewInit {
       this.postMentionedUids = [];
       this.clearImage();
       this.resetAndLoad();
-    } catch (e) {
-      console.error('Post creation failed:', e);
+    } catch {
+      this.toast.error('Failed to create post.');
     }
   }
 
@@ -251,8 +256,8 @@ export class Feed implements OnInit, AfterViewInit {
       this.editingPostId = null;
       this.editingPostType = undefined;
       this.editText = '';
-    } catch (e) {
-      console.error('Edit failed:', e);
+    } catch {
+      this.toast.error('Failed to save changes.');
     }
   }
 

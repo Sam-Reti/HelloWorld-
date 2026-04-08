@@ -73,7 +73,9 @@ export class LoginComponent {
     sendPasswordResetEmail(this.auth, email, {
       url: `${window.location.origin}/reset-password`,
       handleCodeInApp: false,
-    }).catch(() => {});
+    }).catch((err) => {
+      this.message = `Failed to send reset email: ${err instanceof Error ? err.message : String(err)}`;
+    });
     this.showResetModal = false;
     this.message = `Reset link sent to ${email}. Check your inbox.`;
   }

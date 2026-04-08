@@ -16,6 +16,7 @@ import { serverTimestamp } from 'firebase/firestore';
 import { Observable, Subscription } from 'rxjs';
 
 import { HiyveService, RoomService } from '@hiyve/angular';
+import { ToastService } from '../shared/toast/toast.service';
 
 export interface CallDoc {
   id: string;
@@ -42,6 +43,7 @@ export class VideoCallService {
   private auth = inject(Auth);
   private firestore = inject(Firestore);
   private destroyRef = inject(DestroyRef);
+  private toast = inject(ToastService);
 
   readonly activeCall = signal<CallDoc | null>(null);
 
@@ -137,8 +139,8 @@ export class VideoCallService {
       // Warm up device enumeration now that getUserMedia has run, so the settings
       // panel shows labeled devices on its very first open.
       navigator.mediaDevices.enumerateDevices().catch(() => {});
-    } catch (err) {
-      console.error('[VideoCall] initiateCall: createRoom failed', err);
+    } catch {
+      this.toast.error('Failed to start video call.');
     }
   }
 
@@ -158,7 +160,7 @@ export class VideoCallService {
     const displayName = user.displayName || user.email || user.uid;
     const token = await this.fetchJoinToken(call.roomName, displayName);
     if (!token) {
-      console.error('[VideoCall] acceptCall: failed to get join token');
+      this.toast.error('Failed to join call.');
       return;
     }
 
@@ -173,8 +175,8 @@ export class VideoCallService {
       console.log('[VideoCall] acceptCall: joinRoomWithToken resolved');
       // Warm up device enumeration now that getUserMedia has run.
       navigator.mediaDevices.enumerateDevices().catch(() => {});
-    } catch (err) {
-      console.error('[VideoCall] acceptCall: joinRoomWithToken failed', err);
+    } catch {
+      this.toast.error('Failed to connect to call.');
     }
   }
 

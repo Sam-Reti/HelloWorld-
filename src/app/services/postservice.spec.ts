@@ -190,6 +190,69 @@ describe('PostService', () => {
     });
   });
 
+  describe('createPracticePost()', () => {
+    it('should throw when not authenticated', async () => {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [...provideFirebaseMocks({ Auth, Firestore, Storage }, { auth: { currentUser: null } as any })],
+      });
+      const svc = TestBed.inject(PostService);
+      await expect(
+        svc.createPracticePost({ language: 'JavaScript', level: 'Easy', score: 100, grade: 'A' } as any),
+      ).rejects.toThrow('Not authenticated');
+    });
+
+    it('should create a practice post', async () => {
+      (getDoc as any).mockResolvedValue({
+        exists: () => true,
+        data: () => ({ displayName: 'Test', avatarColor: '#000' }),
+      });
+      (addDoc as any).mockResolvedValue({ id: 'practice-post-id' });
+
+      const result = await service.createPracticePost({
+        language: 'JavaScript',
+        level: 'Easy',
+        score: 100,
+        grade: 'A',
+      } as any);
+
+      expect(result).toBe('practice-post-id');
+      expect(addDoc).toHaveBeenCalledWith(
+        'postsCol',
+        expect.objectContaining({ type: 'practice', authorId: FAKE_USER.uid }),
+      );
+    });
+  });
+
+  describe('createCodePost()', () => {
+    it('should throw when not authenticated', async () => {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [...provideFirebaseMocks({ Auth, Firestore, Storage }, { auth: { currentUser: null } as any })],
+      });
+      const svc = TestBed.inject(PostService);
+      await expect(
+        svc.createCodePost('code', 'javascript', 'My solution'),
+      ).rejects.toThrow('Not authenticated');
+    });
+
+    it('should create a code post with text', async () => {
+      (getDoc as any).mockResolvedValue({
+        exists: () => true,
+        data: () => ({ displayName: 'Test', avatarColor: '#000' }),
+      });
+      (addDoc as any).mockResolvedValue({ id: 'code-post-id' });
+
+      const result = await service.createCodePost('console.log("hi")', 'javascript', 'My code');
+
+      expect(result).toBe('code-post-id');
+      expect(addDoc).toHaveBeenCalledWith(
+        'postsCol',
+        expect.objectContaining({ type: 'code', codeContent: 'console.log("hi")' }),
+      );
+    });
+  });
+
   describe('hasLiked()', () => {
     it('should return false when not authenticated', async () => {
       TestBed.resetTestingModule();

@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Auth, authState } from '@angular/fire/auth';
 import { GoogleAuthProvider, signInWithPopup, AuthError } from 'firebase/auth';
 import { Firestore, doc, getDoc, setDoc } from '@angular/fire/firestore';
+import { serverTimestamp } from 'firebase/firestore';
 import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
@@ -40,7 +41,7 @@ export class AuthService {
         avatarColor: '#0ea5a4',
         followerCount: 0,
         followingCount: 0,
-        createdAt: new Date(),
+        createdAt: serverTimestamp(),
       });
     }
   }
